@@ -1,3 +1,3 @@
-module github.com/ptpyip/Gorilla
+module gorilla
 
 go 1.25.3

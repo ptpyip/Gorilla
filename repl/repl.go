@@ -14,7 +14,7 @@ func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 
 	for {
-		fmt.Printf(PROMPT)
+		fmt.Print(PROMPT)
 
 		ok := scanner.Scan()
 		if !ok {
@@ -23,8 +23,9 @@ func Start(in io.Reader, out io.Writer) {
 
 		newLine := scanner.Text()
 		lx := lexer.NewLexer(newLine)
-		for tok := lx.NextToken(); tok.Type != token.EOF; tok = lx.NextToken() {
+		for tok := lx.NextToken(); tok.Type != token.EOF; {
 			fmt.Printf("%+v\n", tok)
+			tok = lx.NextToken()
 		}
 
 	}

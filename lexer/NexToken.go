@@ -2,7 +2,7 @@ package lexer
 
 import "gorilla/token"
 
-func (lx *Lexer) NextToken() token.Token {
+func (lx *Lexer) GetNextToken() token.Token {
 	var nextTokenType token.TokenType
 	defer lx.readChar()
 

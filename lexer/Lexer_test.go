@@ -13,7 +13,7 @@ type ExpectedToken struct {
 func testExpectedToken(t *testing.T, input string, tests []ExpectedToken) {
 	lx := NewLexer(input)
 	for i, testTok := range tests {
-		tok := lx.NextToken()
+		tok := lx.GetNextToken()
 
 		if tok.Type != testTok.expectedType {
 			t.Fatalf("tests[%d] - wrong tokentype. expected=%q, got %q",

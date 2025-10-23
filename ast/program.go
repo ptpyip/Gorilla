@@ -17,7 +17,7 @@ func (prog *Program) GetTokenLiteral(idx int) string {
 type LetStatement struct {
 	// tok        token.Token
 	Identifier *IdentifierNode
-	Expression *ExpressionNode
+	Expression ExpressionNode
 }
 
 func (letStmt *LetStatement) statementNode() {}
@@ -28,4 +28,18 @@ func (letStmt *LetStatement) GetTokenType() token.TokenType {
 
 func (letStmt *LetStatement) GetTokenLiteral() string {
 	return "let"
+}
+
+type ReturnStatement struct {
+	ReturnValue ExpressionNode
+}
+
+func (returnStmt *ReturnStatement) statementNode() {}
+
+func (returnStmt *ReturnStatement) GetTokenType() token.TokenType {
+	return token.RETURN
+}
+
+func (returnStmt *ReturnStatement) GetTokenLiteral() string {
+	return "return"
 }

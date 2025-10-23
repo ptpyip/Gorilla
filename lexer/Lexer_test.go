@@ -1,36 +1,37 @@
 package lexer
 
 import (
+	"gorilla/expected"
 	"gorilla/token"
 	"testing"
 )
 
-type ExpectedToken struct {
-	expectedType    token.TokenType
-	expectedLiteral string
-}
+// type ExpectedToken struct {
+// 	expectedType    token.TokenType
+// 	expectedLiteral string
+// }
 
-func testExpectedToken(t *testing.T, input string, tests []ExpectedToken) {
+func testExpectedToken(t *testing.T, input string, tests []expected.Token) {
 	lx := NewLexer(input)
 	for i, testTok := range tests {
 		tok := lx.GetNextToken()
 
-		if tok.Type != testTok.expectedType {
+		if tok.Type != testTok.ExpectedType {
 			t.Fatalf("tests[%d] - wrong tokentype. expected=%q, got %q",
-				i, testTok.expectedType, tok.Type,
+				i, testTok.ExpectedType, tok.Type,
 			)
 		}
 
-		if tok.Literal != testTok.expectedLiteral {
+		if tok.Literal != testTok.ExpectedLiteral {
 			t.Fatalf("tests[%d] - wrong literal. expected=%q, got %q",
-				i, testTok.expectedLiteral, tok.Literal,
+				i, testTok.ExpectedLiteral, tok.Literal,
 			)
 		}
 	}
 }
 
 func TestNextToken(t *testing.T) {
-	testExpectedToken(t, `+-*/=(){},;`, []ExpectedToken{
+	testExpectedToken(t, `+-*/=(){},;`, []expected.Token{
 		{token.PLUS, "+"},
 		{token.MINUS, "-"},
 		{token.ASTERISK, "*"},
@@ -51,7 +52,7 @@ func TestNextToken(t *testing.T) {
     x + y;
     };
     let result = add(five, ten);
-`, []ExpectedToken{
+`, []expected.Token{
 		{token.LET, "let"},
 		{token.IDENT, "five"},
 		{token.ASSIGN, "="},
@@ -112,7 +113,7 @@ func TestNextToken(t *testing.T) {
     }
     10 == 10;
     10 != 9;
-    `, []ExpectedToken{
+    `, []expected.Token{
 		// let five = 5;
 		{token.LET, "let"},
 		{token.IDENT, "five"},

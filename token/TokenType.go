@@ -59,8 +59,8 @@ var keywords = map[string]TokenType{
 }
 
 func GetTokenType(identifier string) TokenType {
-	if tok, ok := keywords[identifier]; ok {
-		return tok
+	if tokenType, ok := keywords[identifier]; ok {
+		return tokenType
 	}
 	return IDENT
 }

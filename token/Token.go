@@ -12,6 +12,8 @@ func NewToken(inputType TokenType, inputChar byte) Token {
 	}
 }
 
+// const LET_TOKEN Token = NewToken(LET, "LET")
+
 // func New2CharToken(inputType TokenType, inputChar byte) Token {
 // 	return Token{
 // 		Type:    inputType,

@@ -3,35 +3,29 @@ package ast
 import "gorilla/token"
 
 type Program struct {
-	Statements []Statement
+	Statements []StatementNode
 }
 
-func (prog *Program) GetTokenLiteral() string {
+func (prog *Program) GetTokenLiteral(idx int) string {
 	if len(prog.Statements) > 0 {
-		return prog.Statements[0].GetTokenLiteral()
+		return prog.Statements[idx].GetTokenLiteral()
 	} else {
 		return ""
 	}
 }
 
-type LetStaement struct {
+type LetStatement struct {
+	// tok        token.Token
 	Identifier *IdentifierNode
-	Value      Expression
+	Expression *ExpressionNode
 }
 
-func (ls *LetStaement) statementNode() {}
+func (letStmt *LetStatement) statementNode() {}
 
-func (ls *LetStaement) GetTokenLiteral() string {
-	return ls.Identifier.Token.Literal
+func (letStmt *LetStatement) GetTokenType() token.TokenType {
+	return token.LET
 }
 
-type IdentifierNode struct {
-	Token token.Token
-	Value string
-}
-
-func (in *IdentifierNode) expressionNode() {}
-
-func (in *IdentifierNode) GetTokenLiteral() string {
-	return in.Token.Literal
+func (letStmt *LetStatement) GetTokenLiteral() string {
+	return "let"
 }

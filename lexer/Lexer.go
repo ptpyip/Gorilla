@@ -66,3 +66,7 @@ func (lx *Lexer) skip() {
 		lx.readChar()
 	}
 }
+
+func (lx *Lexer) Copy() *Lexer {
+	return NewLexer(lx.input)
+}

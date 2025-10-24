@@ -1,6 +1,9 @@
 package ast
 
-import "gorilla/token"
+import (
+	"bytes"
+	"gorilla/token"
+)
 
 type Program struct {
 	Statements []StatementNode
@@ -22,6 +25,15 @@ type LetStatement struct {
 
 func (letStmt *LetStatement) statementNode() {}
 
+func (letStmt *LetStatement) ToString() string {
+	var out bytes.Buffer
+	out.WriteString("let ")
+	out.WriteString(letStmt.Identifier.GetTokenLiteral())
+	out.WriteString(" = ")
+	out.WriteString(letStmt.Expression.ToString())
+	return out.String()
+}
+
 func (letStmt *LetStatement) GetTokenType() token.TokenType {
 	return token.LET
 }
@@ -42,4 +54,11 @@ func (returnStmt *ReturnStatement) GetTokenType() token.TokenType {
 
 func (returnStmt *ReturnStatement) GetTokenLiteral() string {
 	return "return"
+}
+
+func (returnStmt *ReturnStatement) ToString() string {
+	var out bytes.Buffer
+	out.WriteString("return ")
+	out.WriteString(returnStmt.ReturnValue.ToString())
+	return out.String()
 }

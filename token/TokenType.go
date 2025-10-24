@@ -64,3 +64,13 @@ func GetTokenType(identifier string) TokenType {
 	}
 	return IDENT
 }
+
+var PrefixOperatior = map[string]TokenType{
+	"!": BANG,
+	"-": MINUS,
+}
+
+// func isPrefixOperator(operator string) bool {
+// 	_, ok := prefixOperatior[operator]
+// 	return ok
+// }

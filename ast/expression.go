@@ -1,6 +1,14 @@
 package ast
 
-import "gorilla/token"
+import (
+	"fmt"
+	"gorilla/token"
+	"strconv"
+)
+
+type Literal interface {
+	Node
+}
 
 type IdentifierNode struct {
 	Token token.Token
@@ -20,9 +28,46 @@ func (in *IdentifierNode) GetName() string {
 	return in.GetTokenLiteral()
 }
 
-type IntegerLiteral struct {
+func (in *IdentifierNode) ToString() string {
+	return in.GetTokenLiteral()
+}
+
+// type BoolToken
+
+type BoolLiteral struct {
 	Token token.Token
-	Value int64
+	// Value bool
+}
+
+func (boolLit *BoolLiteral) expressionNode() {}
+
+func (boolLit *BoolLiteral) GetTokenType() token.TokenType {
+	return boolLit.Token.Type
+}
+
+func (boolLit *BoolLiteral) GetTokenLiteral() string {
+	return boolLit.Token.Literal
+}
+
+func (boolLit *BoolLiteral) GetValue() bool {
+	return boolLit.Token.Type == token.TRUE
+}
+
+func (boolLit *BoolLiteral) ToString() string {
+	return boolLit.GetTokenLiteral()
+}
+
+type IntegerLiteral struct {
+	token token.Token
+	value int64
+}
+
+func NewIntegerLiteral(token token.Token) (*IntegerLiteral, error) {
+	value, err := strconv.ParseInt(token.Literal, 0, 64)
+	if err != nil {
+		return nil, fmt.Errorf("Could not parse integer literal: " + token.Literal)
+	}
+	return &IntegerLiteral{token, value}, nil
 }
 
 func (intLit *IntegerLiteral) expressionNode() {}
@@ -32,9 +77,13 @@ func (intLit *IntegerLiteral) GetTokenType() token.TokenType {
 }
 
 func (intLit *IntegerLiteral) GetTokenLiteral() string {
-	return intLit.Token.Literal
+	return intLit.token.Literal
 }
 
 func (intLit *IntegerLiteral) GetValue() int64 {
-	return intLit.Value
+	return intLit.value
+}
+
+func (intLit *IntegerLiteral) ToString() string {
+	return intLit.GetTokenLiteral()
 }

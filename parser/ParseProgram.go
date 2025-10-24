@@ -3,7 +3,6 @@ package parser
 import (
 	"gorilla/ast"
 	"gorilla/token"
-	"strconv"
 )
 
 func (p *Parser) ParseProgram() (*ast.Program, bool) {
@@ -87,41 +86,125 @@ func (p *Parser) parseStatement() ast.StatementNode {
 		p.raiseError("Unexpected semicolon")
 		return nil
 	default:
+		p.loadNextToken()
 		return nil
 	}
 }
 
 func (p *Parser) parseExpression() (ast.ExpressionNode, bool) {
-	ok := true
+	left, ok := p.parsePrefix()
+	if !ok {
+		return nil, !ok
+	}
 
-	for p.currentToken.Type != token.SEMICOLON {
-		if p.currentToken.Type == token.EOF {
+	return left, ok
+
+	// for p.currentToken.Type != token.SEMICOLON {
+
+	// switch p.currentToken.Type {
+	// case token.INT:
+	// 	expr, err := ast.NewIntegerLiteral(p.currentToken)
+	// 	if err != nil {
+	// 		p.raiseError(err.Error())
+	// 		return nil, !ok
+	// 	}
+
+	// 	return expr, ok
+	// 	// value, err := strconv.ParseInt(p.currentToken.Literal, 0, 64)
+	// 	// if err != nil {
+	// 	// 	p.raiseError("Could not parse integer literal: " + p.currentToken.Literal)
+	// 	// 	return nil, !ok
+	// 	// }
+
+	// 	// return &ast.IntegerLiteral{
+	// 	// 	Token: p.currentToken,
+	// 	// 	Value: value,
+	// 	// }, ok
+
+	// case token.IDENT:
+	// 	return &ast.IdentifierNode{p.currentToken}, ok
+	// default:
+	// 	p.loadNextToken()
+	// }
+
+	// }
+	// return nil, ok
+}
+
+// func (p *Parser) parseIdentifier() (ast.ExpressionNode, bool) {
+// 	ok := true
+
+// 	identifier := &ast.IdentifierNode{p.currentToken}
+// 	p.loadNextToken()
+
+// 	switch p.currentToken.Type {
+// 	case token.PLUS, token.MINUS:
+
+// 		if p.nextToken.Type != p.currentToken.Type {
+// 			p.raiseNextTokenError(p.currentToken.Type)
+// 			return nil, !ok
+// 		}
+// 		p.loadNextToken()
+
+// 		if p.nextToken.Type != token.SEMICOLON {
+// 			p.raiseNextTokenError(token.SEMICOLON)
+// 			return nil, !ok
+// 		}
+// 		p.loadNextToken()
+
+// 		return &ast.PrefixOperation{
+// 			UnaryOperation: ast.UnaryOperation{
+// 				Operator: p.currentToken,
+// 				Operand:  identifier,
+// 			},
+// 		}, ok
+
+// 	}
+// 	return identifier, ok
+// }
+
+func (p *Parser) parsePrefix() (ast.ExpressionNode, bool) {
+	ok := true
+	switch p.currentToken.Type {
+
+	case token.IDENT:
+		return &ast.IdentifierNode{p.currentToken}, ok
+
+	case token.INT:
+		if p.nextToken.Type != token.SEMICOLON {
+			p.raiseNextTokenError(token.SEMICOLON)
 			return nil, !ok
 		}
 
-		switch p.currentToken.Type {
-		case token.INT:
-			value, err := strconv.ParseInt(p.currentToken.Literal, 0, 64)
-			if err != nil {
-				p.raiseError("Could not parse integer literal: " + p.currentToken.Literal)
-				return nil, !ok
-			}
+		expr, err := ast.NewIntegerLiteral(p.currentToken)
+		if err != nil {
+			p.raiseError(err.Error())
+			return nil, !ok
+		}
+		// p.loadNextToken()
 
-			return &ast.IntegerLiteral{
-				Token: p.currentToken,
-				Value: value,
-			}, ok
+		return expr, ok
 
-		case token.IDENT:
-			return &ast.IdentifierNode{
-				Token: p.currentToken,
-			}, ok
-		default:
-			p.loadNextToken()
+	case token.BANG, token.MINUS:
+		operator := p.currentToken
+		p.loadNextToken()
+
+		expr, ok := p.parseExpression()
+		if !ok {
+			p.raiseError(
+				"Could not parse expression after prefix operator " + operator.Literal,
+			)
+			return nil, !ok
 		}
 
+		return &ast.Prefix{operator, expr}, ok
+
+	default:
+		p.raiseError(
+			"Could not parse expression given token: " + p.currentToken.Literal,
+		)
+		return nil, !ok
 	}
-	return nil, ok
 }
 
 func (p *Parser) skipToSemicolon() {

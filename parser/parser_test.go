@@ -25,9 +25,26 @@ func TestParser(t *testing.T) {
 		&expected.LetStatement{"foobar", expected.NewIntegerLiteral(838383)},
 		&expected.ReturnStatement{expected.NewIntegerLiteral(0)},
 		&expected.ReturnStatement{&expected.Identifier{Name: "x"}},
-		&expected.ReturnStatement{&expected.Prefix{token.BANG, "x"}},
-		&expected.LetStatement{"x", &expected.Prefix{token.MINUS, "5"}},
+		&expected.ReturnStatement{
+			&expected.Prefix{token.BANG, &expected.Identifier{Name: "x"}},
+		},
+		&expected.LetStatement{"x",
+			&expected.Prefix{token.MINUS, &expected.IntegerLiteral{Value: 5}},
+		},
 	})
+
+	// testParseProgram(t, `
+	// let x = 5;
+	// return x;
+	// let y = -5;
+	// return -y;
+	// `, []expected.Node{
+	// 	&expected.LetStatement{"x", expected.NewIntegerLiteral(5)},
+	// 	&expected.ReturnStatement{&expected.Identifier{Name: "x"}},
+	// 	// &expected.LetStatement{"y", expected.NewIntegerLiteral(-5)},
+	// 	&expected.ReturnStatement{
+	// 		&expected.Prefix{token.MINUS, &expected.Identifier{Name: "y"}}},
+	// })
 
 }
 

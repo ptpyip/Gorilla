@@ -1,7 +1,6 @@
 package ast
 
 import (
-	"fmt"
 	"gorilla/token"
 	"strconv"
 )
@@ -65,7 +64,8 @@ type IntegerLiteral struct {
 func NewIntegerLiteral(token token.Token) (*IntegerLiteral, error) {
 	value, err := strconv.ParseInt(token.Literal, 0, 64)
 	if err != nil {
-		return nil, fmt.Errorf("Could not parse integer literal: " + token.Literal)
+		return nil, err
+		// return nil, fmt.Errorf("Could not parse integer literal: " + token.Literal)
 	}
 	return &IntegerLiteral{token, value}, nil
 }

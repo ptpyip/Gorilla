@@ -197,6 +197,21 @@ func (p *Parser) parsePrefix() (ast.ExpressionNode, bool) {
 			return nil, !ok
 		}
 
+		// optimize negative value
+		if operator.Type == token.MINUS && expr.GetTokenType() == token.INT {
+			intLit, err := ast.NewIntegerLiteral(
+				token.Token{
+					Type:    token.INT,
+					Literal: "-" + expr.GetTokenLiteral(),
+				},
+			)
+			if err != nil {
+				p.raiseError(err.Error())
+				return nil, !ok
+			}
+			return intLit, ok
+		}
+
 		return &ast.Prefix{operator, expr}, ok
 
 	default:
@@ -213,3 +228,11 @@ func (p *Parser) skipToSemicolon() {
 		// println("Skip:", p.currentToken.Literal)
 	}
 }
+
+// func parseNegativeInteger(intLit *ast.IntegerLiteral) (ast.IntegerLiteral, bool) {
+// 	value, err := strconv.ParseInt(token.Literal, 0, 64)
+// 	if err != nil {
+// 		return nil, false
+// 	}
+// 	return &ast.IntegerLiteral{Token: token, Value: -value}, true
+// }

@@ -77,7 +77,7 @@ func (expected *Identifier) Test(t *testing.T, node ast.Node) bool {
 
 type Prefix struct {
 	OperatorType token.TokenType
-	Operand      string
+	Operand      ExpressionNode
 }
 
 func (expected *Prefix) getTokenType() token.TokenType {
@@ -90,7 +90,7 @@ func (expected *Prefix) getTokenLiteral() string {
 
 func (expected *Prefix) Test(t *testing.T, node ast.Node) bool {
 
-	prefixOp, ok := node.(*ast.Prefix)
+	prefixOp, ok := node.(*ast.  )
 	if !ok {
 		t.Errorf("Expected Prefix. got %T expression", node.GetTokenType())
 		return false
@@ -101,13 +101,13 @@ func (expected *Prefix) Test(t *testing.T, node ast.Node) bool {
 			expected.getTokenLiteral(), prefixOp.GetOperatorType(),
 		)
 		return false
-	}
+	}          
 
-	if prefixOp.Operand.ToString() != expected.Operand {
-		t.Errorf("Expected prefixOp.Operand.TokenLiteral = %s. got = %s",
-			expected.Operand, prefixOp.Operand.ToString(),
-		)
-		return false
-	}
-	return true
+	// if prefixOp.Operand.ToString() != expected.Operand {
+	// 	t.Errorf("Expected prefixOp.Operand.TokenLiteral = %s. got = %s",
+	// 		expected.Operand, prefixOp.Operand.ToString(),
+	// 	)
+	// 	return false
+	// }
+	return expected.Operand.Test(t, prefixOp.Operand)
 }

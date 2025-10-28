@@ -27,6 +27,9 @@ const (
 	LE     TokenType = "<="
 	GE     TokenType = ">="
 
+	AND TokenType = "&&"
+	OR  TokenType = "||"
+
 	// Delimiters
 	COMMA     TokenType = ","
 	SEMICOLON TokenType = ";"

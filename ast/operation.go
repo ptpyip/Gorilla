@@ -44,3 +44,41 @@ func (prefixOp *Prefix) ToString() string {
 	out.WriteString(")")
 	return out.String()
 }
+
+type Infix struct {
+	Operator token.Token
+	Left     ExpressionNode
+	Right    ExpressionNode
+}
+
+func (inFix *Infix) expressionNode() {}
+
+func (inFix *Infix) GetTokenType() token.TokenType {
+	return inFix.Operator.Type
+}
+
+func (inFix *Infix) GetTokenLiteral() string {
+	return inFix.Operator.Literal
+}
+
+func (inFix *Infix) GetOperatorType() token.TokenType {
+	return inFix.GetTokenType()
+}
+
+func (inFix *Infix) GetOperands() []ExpressionNode {
+	return []ExpressionNode{inFix.Left, inFix.Right}
+}
+
+func (inFix *Infix) ToString() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(inFix.Left.ToString())
+	out.WriteString(" ")
+	out.WriteString(inFix.Operator.Literal)
+	out.WriteString(" ")
+	out.WriteString(inFix.Right.ToString())
+	out.WriteString(")")
+
+	return out.String()
+}

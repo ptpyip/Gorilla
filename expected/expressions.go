@@ -90,8 +90,9 @@ func (expected *Prefix) getTokenLiteral() string {
 
 func (expected *Prefix) Test(t *testing.T, node ast.Node) bool {
 
-	prefixOp, ok := node.(*ast.  )
+	prefixOp, ok := node.(*ast.Prefix)
 	if !ok {
+		println(node.ToString())
 		t.Errorf("Expected Prefix. got %T expression", node.GetTokenType())
 		return false
 	}
@@ -101,7 +102,7 @@ func (expected *Prefix) Test(t *testing.T, node ast.Node) bool {
 			expected.getTokenLiteral(), prefixOp.GetOperatorType(),
 		)
 		return false
-	}          
+	}
 
 	// if prefixOp.Operand.ToString() != expected.Operand {
 	// 	t.Errorf("Expected prefixOp.Operand.TokenLiteral = %s. got = %s",
@@ -110,4 +111,43 @@ func (expected *Prefix) Test(t *testing.T, node ast.Node) bool {
 	// 	return false
 	// }
 	return expected.Operand.Test(t, prefixOp.Operand)
+}
+
+type Infix struct {
+	OperatorType token.TokenType
+	Left         ExpressionNode
+	Right        ExpressionNode
+}
+
+func (expected *Infix) getTokenType() token.TokenType {
+	return expected.OperatorType
+}
+
+func (expected *Infix) getTokenLiteral() string {
+	return string(expected.OperatorType)
+}
+
+func (expected *Infix) Test(t *testing.T, node ast.Node) bool {
+	inFix, ok := node.(*ast.Infix)
+	if !ok {
+		t.Errorf("Expected Infix. got %T expression", node.GetTokenType())
+		return false
+	}
+
+	if inFix.GetOperatorType() != expected.OperatorType {
+		t.Errorf("Expected inFix.Operator.Type = %s. got = %s",
+			expected.getTokenLiteral(), inFix.GetOperatorType(),
+		)
+		return false
+	}
+
+	if inFix.Left == nil {
+		t.Errorf("Invalid Infix satement: inFix.Left is nil")
+		return false
+	} else if inFix.Right == nil {
+		t.Errorf("Invalid Infix satement: inFix.Right is nil")
+		return false
+	}
+
+	return expected.Left.Test(t, inFix.Left) && expected.Right.Test(t, inFix.Right)
 }

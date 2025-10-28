@@ -75,6 +75,29 @@ func (lx *Lexer) GetNextToken() token.Token {
 		nextTokenType = token.SEMICOLON
 	case ':':
 		nextTokenType = token.COLON
+
+	// logical operators
+	case '&':
+		if lx.getNextChar() == '&' {
+			lx.readChar()
+			return token.Token{
+				Type:    token.AND,
+				Literal: "&&",
+			}
+		} else {
+			nextTokenType = token.ILLEGAL
+		}
+	case '|':
+		if lx.getNextChar() == '|' {
+			lx.readChar()
+			return token.Token{
+				Type:    token.OR,
+				Literal: "||",
+			}
+		} else {
+			nextTokenType = token.ILLEGAL
+		}
+
 	default:
 		if isValidLetter(lx.currentChar) {
 			ident := lx.readIdentifier()

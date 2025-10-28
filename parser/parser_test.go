@@ -29,7 +29,65 @@ func TestParser(t *testing.T) {
 			&expected.Prefix{token.BANG, &expected.Identifier{Name: "x"}},
 		},
 		&expected.LetStatement{"x",
-			&expected.Prefix{token.MINUS, &expected.IntegerLiteral{Value: 5}},
+			// &expected.Prefix{token.MINUS, &expected.IntegerLiteral{Value: 5}},
+			&expected.IntegerLiteral{-5},
+		},
+		// &expected.LetStatement{"y",
+		// 	&expected.Infix{
+		// 		token.PLUS,
+		// 		&expected.Identifier{Name: "x"},
+		// 		&expected.IntegerLiteral{Value: 5},
+		// 	},
+		// },
+	})
+
+	testParseProgram(t, `
+		let x = -5;
+		let y = x + 5;
+		return -y * -1 + 1;
+		let z = x && y;
+		return !z || x;
+	`, []expected.Node{
+		&expected.LetStatement{"x",
+			&expected.IntegerLiteral{-5},
+		},
+		&expected.LetStatement{"y",
+			&expected.Infix{
+				token.PLUS,
+				&expected.Identifier{Name: "x"},
+				&expected.IntegerLiteral{Value: 5},
+			},
+		},
+		&expected.ReturnStatement{
+			&expected.Infix{
+				token.PLUS,
+				&expected.Infix{
+					token.ASTERISK,
+					&expected.Prefix{
+						token.MINUS,
+						&expected.Identifier{Name: "y"},
+					},
+					&expected.IntegerLiteral{Value: -1},
+				},
+				&expected.IntegerLiteral{Value: 1},
+			},
+		},
+		&expected.LetStatement{"z",
+			&expected.Infix{
+				token.AND,
+				&expected.Identifier{Name: "x"},
+				&expected.Identifier{Name: "y"},
+			},
+		},
+		&expected.ReturnStatement{
+			&expected.Infix{
+				token.OR,
+				&expected.Prefix{
+					token.BANG,
+					&expected.Identifier{Name: "z"},
+				},
+				&expected.Identifier{Name: "x"},
+			},
 		},
 	})
 

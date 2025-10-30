@@ -128,25 +128,32 @@ func (expected *Infix) getTokenLiteral() string {
 }
 
 func (expected *Infix) Test(t *testing.T, node ast.Node) bool {
+	pass := true
+	if node == nil {
+		t.Errorf("Expected Infix. got nil")
+		return !pass
+	}
+
 	inFix, ok := node.(*ast.Infix)
 	if !ok {
-		t.Errorf("Expected Infix. got %T expression", node.GetTokenType())
-		return false
+		t.Logf("Expected Infix. got %s expression", node.ToString())
+		t.Logf("%s", node.GetTokenLiteral())
+		return !pass
 	}
 
 	if inFix.GetOperatorType() != expected.OperatorType {
 		t.Errorf("Expected inFix.Operator.Type = %s. got = %s",
 			expected.getTokenLiteral(), inFix.GetOperatorType(),
 		)
-		return false
+		return !pass
 	}
 
 	if inFix.Left == nil {
 		t.Errorf("Invalid Infix satement: inFix.Left is nil")
-		return false
+		return !pass
 	} else if inFix.Right == nil {
 		t.Errorf("Invalid Infix satement: inFix.Right is nil")
-		return false
+		return !pass
 	}
 
 	return expected.Left.Test(t, inFix.Left) && expected.Right.Test(t, inFix.Right)

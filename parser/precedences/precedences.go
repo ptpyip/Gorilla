@@ -24,6 +24,6 @@ var Precedence = map[token.TokenType]int{
 	token.SLASH:    PRODUCT,
 	// token.BANG:     PREFIX,
 	// token.MINUS:    PREFIX,
-	token.AND: CALL,
-	token.OR:  CALL,
+	token.AND: PRODUCT,
+	token.OR:  PRODUCT,
 }

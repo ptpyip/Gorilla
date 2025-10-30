@@ -168,6 +168,8 @@ func testParseProgram(t *testing.T,
 	for i, expectedNode := range expectedNodes {
 		pass := expectedNode.Test(t, prog.Statements[i])
 		if !pass {
+			testParserErrors(t, p.errors)
+			t.FailNow()
 			return
 		}
 	}

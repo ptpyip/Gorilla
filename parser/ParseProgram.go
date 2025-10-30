@@ -93,6 +93,7 @@ func (p *Parser) parseStatement() ast.StatementNode {
 }
 
 func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool) {
+	println("Parsing :" + p.currentToken.Literal)
 	ok := true
 
 	var expr ast.ExpressionNode
@@ -277,7 +278,7 @@ func (p *Parser) parseInfix(left ast.ExpressionNode) (ast.ExpressionNode, bool) 
 
 	// logical operators
 	case token.AND, token.OR:
-		right, ok = p.parseExpression(precedences.LOWEST)
+		right, ok = p.parseExpression(precedences.PRODUCT)
 		if !ok {
 			p.raiseError("Could not parse logical expression")
 			return nil, !ok
@@ -285,6 +286,11 @@ func (p *Parser) parseInfix(left ast.ExpressionNode) (ast.ExpressionNode, bool) 
 
 	default:
 		p.raiseError(" Unexpected operator " + operator.Literal)
+		return nil, !ok
+	}
+
+	if right == nil {
+		p.raiseError("Right operand is nil")
 		return nil, !ok
 	}
 

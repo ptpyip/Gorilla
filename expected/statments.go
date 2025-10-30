@@ -42,11 +42,9 @@ func (expected *LetStatement) Test(t *testing.T, node ast.Node) bool {
 	if letStmt.Expression == nil {
 		t.Errorf("Invalid Let satement: Expression is nil")
 		return false
-	} else {
-		expected.Expression.Test(t, letStmt.Expression)
 	}
 
-	return true
+	return expected.Expression.Test(t, letStmt.Expression)
 }
 
 type ReturnStatement struct {
@@ -73,7 +71,5 @@ func (expected *ReturnStatement) Test(t *testing.T, node ast.Node) bool {
 		return false
 	}
 
-	expected.Expression.Test(t, returnStmt.ReturnValue)
-
-	return true
+	return expected.Expression.Test(t, returnStmt.ReturnValue)
 }

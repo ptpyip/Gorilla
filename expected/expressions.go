@@ -7,6 +7,45 @@ import (
 	"testing"
 )
 
+type BoolLiteral struct {
+	Value bool
+}
+
+func NewBoolLiteral(value bool) *BoolLiteral {
+	return &BoolLiteral{Value: value}
+}
+
+func (expected *BoolLiteral) getTokenType() token.TokenType {
+	if expected.Value {
+		return token.TRUE
+	}
+	return token.FALSE
+}
+
+func (expected *BoolLiteral) getTokenLiteral() string {
+	if expected.Value {
+		return "true"
+	}
+	return "false"
+}
+
+func (expected *BoolLiteral) Test(t *testing.T, node ast.Node) bool {
+	boolLit, ok := node.(*ast.BoolLiteral)
+	if !ok {
+		t.Errorf("Expected BoolLiteral. got %T expression", node.GetTokenType())
+		return false
+	}
+
+	// intValue, _ := strconv.ParseInt(expected., 0, 64)
+	if boolLit.GetValue() != expected.Value {
+		t.Errorf("boolLit.Value not %s. got=%s",
+			expected.getTokenLiteral(), boolLit.GetTokenLiteral(),
+		)
+		return !ok
+	}
+	return ok
+}
+
 type IntegerLiteral struct {
 	Value int
 }

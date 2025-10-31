@@ -47,6 +47,7 @@ func TestParser(t *testing.T) {
 		return -y * -1 + 1;
 		let z = x && y;
 		return !z || x;
+		return z && !y;
 	`, []expected.Node{
 		&expected.LetStatement{"x",
 			&expected.IntegerLiteral{-5},
@@ -89,19 +90,98 @@ func TestParser(t *testing.T) {
 				&expected.Identifier{Name: "x"},
 			},
 		},
+		&expected.ReturnStatement{
+			&expected.Infix{
+				token.AND,
+				&expected.Identifier{Name: "z"},
+				&expected.Prefix{
+					token.BANG,
+					&expected.Identifier{Name: "y"},
+				},
+			},
+		},
+	})
+
+	testParseProgram(t, `
+		return 3 < 5 == True;
+		let a = 5 < 4 != 3 > 4;
+		return 3 + 4 * 5 == 3 * 1 + 4 * 5;
+	`, []expected.Node{
+		&expected.ReturnStatement{
+			&expected.Infix{
+				token.EQ,
+				&expected.Infix{
+					token.LT,
+					&expected.IntegerLiteral{3},
+					&expected.IntegerLiteral{5},
+				},
+				&expected.BoolLiteral{true},
+			},
+		},
+		&expected.LetStatement{"a",
+			&expected.Infix{
+				token.NOT_EQ,
+				&expected.Infix{
+					token.LT,
+					&expected.IntegerLiteral{Value: 5},
+					&expected.IntegerLiteral{Value: 4},
+				},
+				&expected.Infix{
+					token.GT,
+					&expected.IntegerLiteral{Value: 3},
+					&expected.IntegerLiteral{Value: 4},
+				},
+			},
+		},
+		&expected.ReturnStatement{
+			&expected.Infix{
+				token.EQ,
+				&expected.Infix{
+					token.PLUS,
+					&expected.IntegerLiteral{Value: 3},
+					&expected.Infix{
+						token.ASTERISK,
+						&expected.IntegerLiteral{Value: 4},
+						&expected.IntegerLiteral{Value: 5},
+					},
+				},
+				&expected.Infix{
+					token.PLUS,
+					&expected.Infix{
+						token.ASTERISK,
+						&expected.IntegerLiteral{Value: 3},
+						&expected.IntegerLiteral{Value: 1},
+					},
+					&expected.Infix{
+						token.ASTERISK,
+						&expected.IntegerLiteral{Value: 4},
+						&expected.IntegerLiteral{Value: 5},
+					},
+				},
+			},
+		},
+	})
+
+	testParseProgram(t, `
+		let x = (5 + 5) * 2;
+	`, []expected.Node{
+		&expected.LetStatement{"x",
+			&expected.Infix{
+				token.ASTERISK,
+				&expected.Infix{
+					token.PLUS,
+					&expected.IntegerLiteral{5},
+					&expected.IntegerLiteral{5},
+				},
+				&expected.IntegerLiteral{2},
+			},
+		},
 	})
 
 	// testParseProgram(t, `
 	// let x = 5;
-	// return x;
-	// let y = -5;
-	// return -y;
 	// `, []expected.Node{
 	// 	&expected.LetStatement{"x", expected.NewIntegerLiteral(5)},
-	// 	&expected.ReturnStatement{&expected.Identifier{Name: "x"}},
-	// 	// &expected.LetStatement{"y", expected.NewIntegerLiteral(-5)},
-	// 	&expected.ReturnStatement{
-	// 		&expected.Prefix{token.MINUS, &expected.Identifier{Name: "y"}}},
 	// })
 
 }

@@ -23,14 +23,17 @@ func (p *Parser) ParseProgram() (*ast.Program, bool) {
 		}
 
 		prog.Statements = append(prog.Statements, statement)
+		if p.currentToken.Type != token.SEMICOLON {
+			p.raiseNextTokenError(token.SEMICOLON)
+			return prog, !ok
+		}
+
 		p.loadNextToken()
 	}
 	return prog, ok
 }
 
 func (p *Parser) parseStatement() ast.StatementNode {
-	// defer p.loadNextToken()
-
 	switch p.currentToken.Type {
 	case token.LET:
 		if p.nextToken.Type != token.IDENT {
@@ -86,6 +89,7 @@ func (p *Parser) parseStatement() ast.StatementNode {
 	case token.SEMICOLON:
 		p.raiseError("Unexpected semicolon")
 		return nil
+
 	default:
 		p.loadNextToken()
 		return nil
@@ -101,6 +105,9 @@ func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool
 	case token.IDENT:
 		expr = &ast.IdentifierNode{p.currentToken}
 
+	case token.TRUE, token.FALSE:
+		expr = &ast.BoolLiteral{p.currentToken}
+
 	case token.INT:
 		var err error
 		expr, err = ast.NewIntegerLiteral(p.currentToken)
@@ -108,13 +115,15 @@ func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool
 			p.raiseError(err.Error())
 			return nil, !ok
 		}
-		// p.loadNextToken()
-	case token.BANG, token.MINUS:
+
+	case token.LPAREN, token.BANG, token.MINUS:
 		expr, ok = p.parsePrefix()
 		if !ok {
 			return nil, !ok
 		}
-		// return nil, ok
+
+	// case token.RBRACE:
+	// 	p.raiseError()
 	default:
 		panic("Unexpected token for parseExpression: " + p.currentToken.Literal)
 	}
@@ -123,7 +132,7 @@ func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool
 		return expr, ok
 	}
 
-	// var left ast.ExpressionNode = expr
+	// Next token is infix operator
 	for p.getNextPrecedence() > parentPrecedence {
 		expr, ok = p.parseInfix(expr)
 		if !ok {
@@ -140,60 +149,15 @@ func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool
 	return expr, ok
 }
 
-// func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool) {
-// 	ok := true
-
-// 	var expr ast.ExpressionNode
-// 	switch p.currentToken.Type {
-// 	case token.IDENT:
-// 		expr = &ast.IdentifierNode{p.currentToken}
-
-// 	case token.INT:
-// 		var err error
-// 		expr, err = ast.NewIntegerLiteral(p.currentToken)
-// 		if err != nil {
-// 			p.raiseError(err.Error())
-// 			return nil, !ok
-// 		}
-// 		// p.loadNextToken()
-// 	case token.BANG, token.MINUS:
-// 		expr, ok = p.parsePrefix()
-// 		if !ok {
-// 			return nil, !ok
-// 		}
-// 		// return nil, ok
-// 	}
-
-// 	if p.nextToken.Type == token.SEMICOLON {
-// 		return expr, ok
-// 	}
-
-// 	// var left ast.ExpressionNode = expr
-// 	for p.getNextPrecedence() > parentPrecedence {
-// 		expr, ok = p.parseInfix(expr)
-// 		if !ok {
-// 			p.raiseError("Could not parse infix expression")
-// 			break
-// 		}
-
-// 		if p.nextToken.Type == token.SEMICOLON {
-// 			break
-// 		}
-
-// 	}
-
-// 	return expr, ok
-// }
-
 func (p *Parser) parsePrefix() (ast.ExpressionNode, bool) {
-	println("parsePrefix on token: " + p.currentToken.Literal)
-
+	// println("parsePrefix on token: " + p.currentToken.Literal)
+	precedence := precedences.PREFIX
 	switch p.currentToken.Type {
 	case token.BANG, token.MINUS:
 		operator := p.currentToken
 		p.loadNextToken()
 
-		expr, ok := p.parseExpression(precedences.PREFIX)
+		operand, ok := p.parseExpression(precedence)
 		if !ok {
 			p.raiseError(
 				"Could not parse expression after prefix operator " + operator.Literal,
@@ -202,11 +166,11 @@ func (p *Parser) parsePrefix() (ast.ExpressionNode, bool) {
 		}
 
 		// optimize negative value
-		if operator.Type == token.MINUS && expr.GetTokenType() == token.INT {
+		if operator.Type == token.MINUS && operand.GetTokenType() == token.INT {
 			intLit, err := ast.NewIntegerLiteral(
 				token.Token{
 					Type:    token.INT,
-					Literal: "-" + expr.GetTokenLiteral(),
+					Literal: "-" + operand.GetTokenLiteral(),
 				},
 			)
 			if err != nil {
@@ -216,7 +180,23 @@ func (p *Parser) parsePrefix() (ast.ExpressionNode, bool) {
 			return intLit, ok
 		}
 
-		return &ast.Prefix{operator, expr}, ok
+		return &ast.Prefix{operator, operand}, ok
+
+	case token.LPAREN:
+		p.loadNextToken()
+
+		inner_expression, ok := p.parseExpression(precedences.LOWEST)
+		if !ok {
+			return nil, !ok
+		}
+
+		if p.nextToken.Type != token.RPAREN {
+			p.raiseNextTokenError(token.RPAREN)
+			return nil, !ok
+		}
+		p.loadNextToken()
+
+		return inner_expression, ok
 
 	// case token.IDENT:
 	// 	return &ast.IdentifierNode{p.currentToken}, ok
@@ -241,7 +221,7 @@ func (p *Parser) parsePrefix() (ast.ExpressionNode, bool) {
 }
 
 func (p *Parser) parseInfix(left ast.ExpressionNode) (ast.ExpressionNode, bool) {
-	println("parsePrefix on token: " + p.currentToken.Literal)
+	// println("parsePrefix on token: " + p.currentToken.Literal)
 	ok := true
 
 	if left == nil {
@@ -250,35 +230,48 @@ func (p *Parser) parseInfix(left ast.ExpressionNode) (ast.ExpressionNode, bool) 
 	}
 	p.loadNextToken()
 
-	println("Infix operator: " + p.currentToken.Literal)
-	println("\twith operator precedence = ", p.getCurrentPrecedence())
 	operator := p.currentToken
+	precedence := p.getCurrentPrecedence()
 	p.loadNextToken()
+
+	println("Infix operator: " + operator.Literal)
+	println("\twith operator precedence = ", precedence)
 
 	var right ast.ExpressionNode
 	switch operator.Type {
 	// algrithmic operators
 	case token.PLUS, token.MINUS:
-		right, ok = p.parseExpression(precedences.SUM)
+		right, ok = p.parseExpression(precedence)
 		if !ok {
-			println(" infix error ", operator.Literal)
+			println(" algrithmic error ", operator.Literal)
 			return nil, !ok
 		}
 
 	case token.ASTERISK, token.SLASH:
-		right, ok = p.parseExpression(precedences.PRODUCT)
+		right, ok = p.parseExpression(precedence)
 		if !ok {
-			println(" infix error ", operator.Literal)
+			println(" algrithmic error ", operator.Literal)
 			return nil, !ok
 		}
 
 	// comparison operators
-	// case token.EQ, token.NOT_EQ, token.LE, token.GE:
-	// 	return nil, ok
+	case token.EQ, token.NOT_EQ, token.LE, token.GE:
+		right, ok = p.parseExpression(precedence)
+		if !ok {
+			println(" algrithmic error ", operator.Literal)
+			return nil, !ok
+		}
+
+	case token.LT, token.GT:
+		right, ok = p.parseExpression(precedence)
+		if !ok {
+			println(" comparison error ", operator.Literal)
+			return nil, !ok
+		}
 
 	// logical operators
 	case token.AND, token.OR:
-		right, ok = p.parseExpression(precedences.PRODUCT)
+		right, ok = p.parseExpression(precedence)
 		if !ok {
 			p.raiseError("Could not parse logical expression")
 			return nil, !ok
@@ -328,6 +321,51 @@ func (p *Parser) getNextPrecedence() int {
 
 	return precedences.LOWEST
 }
+
+// func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool) {
+// 	ok := true
+
+// 	var expr ast.ExpressionNode
+// 	switch p.currentToken.Type {
+// 	case token.IDENT:
+// 		expr = &ast.IdentifierNode{p.currentToken}
+
+// 	case token.INT:
+// 		var err error
+// 		expr, err = ast.NewIntegerLiteral(p.currentToken)
+// 		if err != nil {
+// 			p.raiseError(err.Error())
+// 			return nil, !ok
+// 		}
+// 		// p.loadNextToken()
+// 	case token.BANG, token.MINUS:
+// 		expr, ok = p.parsePrefix()
+// 		if !ok {
+// 			return nil, !ok
+// 		}
+// 		// return nil, ok
+// 	}
+
+// 	if p.nextToken.Type == token.SEMICOLON {
+// 		return expr, ok
+// 	}
+
+// 	// var left ast.ExpressionNode = expr
+// 	for p.getNextPrecedence() > parentPrecedence {
+// 		expr, ok = p.parseInfix(expr)
+// 		if !ok {
+// 			p.raiseError("Could not parse infix expression")
+// 			break
+// 		}
+
+// 		if p.nextToken.Type == token.SEMICOLON {
+// 			break
+// 		}
+
+// 	}
+
+// 	return expr, ok
+// }
 
 // func parseNegativeInteger(intLit *ast.IntegerLiteral) (ast.IntegerLiteral, bool) {
 // 	value, err := strconv.ParseInt(token.Literal, 0, 64)

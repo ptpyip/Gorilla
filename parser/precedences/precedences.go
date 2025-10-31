@@ -5,19 +5,21 @@ import "gorilla/token"
 const (
 	_ int = iota
 	LOWEST
-	EQUALS      // ==
-	LESSGREATER // > or <
-	SUM         // +
-	PRODUCT     // *
-	PREFIX      // -X or !X
-	CALL        // myFunction(X)
+	EQUALS  // ==
+	COMPARE // > or <
+	SUM     // +
+	PRODUCT // *
+	PREFIX  // -X or !X
+	CALL    // myFunction(X)
 )
 
 var Precedence = map[token.TokenType]int{
 	token.EQ:       EQUALS,
 	token.NOT_EQ:   EQUALS,
-	token.LE:       LESSGREATER,
-	token.GE:       LESSGREATER,
+	token.LE:       EQUALS,
+	token.GE:       EQUALS,
+	token.LT:       COMPARE,
+	token.GT:       COMPARE,
 	token.PLUS:     SUM,
 	token.MINUS:    SUM,
 	token.ASTERISK: PRODUCT,

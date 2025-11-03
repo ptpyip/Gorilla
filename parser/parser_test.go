@@ -164,6 +164,7 @@ func TestParser(t *testing.T) {
 
 	testParseProgram(t, `
 		let x = (5 + 5) * 2;
+		return ((x / 2) * 2) == 20;
 	`, []expected.Node{
 		&expected.LetStatement{"x",
 			&expected.Infix{
@@ -174,6 +175,21 @@ func TestParser(t *testing.T) {
 					&expected.IntegerLiteral{5},
 				},
 				&expected.IntegerLiteral{2},
+			},
+		},
+		&expected.ReturnStatement{
+			&expected.Infix{
+				token.EQ,
+				&expected.Infix{
+					token.ASTERISK,
+					&expected.Infix{
+						token.SLASH,
+						&expected.Identifier{Name: "x"},
+						&expected.IntegerLiteral{2},
+					},
+					&expected.IntegerLiteral{2},
+				},
+				&expected.IntegerLiteral{20},
 			},
 		},
 	})

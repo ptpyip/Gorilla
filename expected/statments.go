@@ -73,3 +73,41 @@ func (expected *ReturnStatement) Test(t *testing.T, node ast.Node) bool {
 
 	return expected.Expression.Test(t, returnStmt.ReturnValue)
 }
+
+type BlockStatement struct {
+	Statements []StatementNode
+}
+
+func NewBlockStatement(statements ...StatementNode) *BlockStatement {
+	return &BlockStatement{Statements: statements}
+}
+
+func (expected *BlockStatement) getTokenType() token.TokenType {
+	return token.LBRACE
+}
+
+func (expected *BlockStatement) getTokenLiteral() string {
+	return "{"
+}
+
+func (expected *BlockStatement) Test(t *testing.T, node ast.Node) bool {
+	blockStmt, ok := node.(*ast.BlockStatement)
+	if !ok {
+		t.Errorf("Block satetment not found. Got %q token", node.GetTokenType())
+		return !ok
+	}
+
+	if len(blockStmt.Statements) != len(expected.Statements) {
+		t.Errorf("Invalid Block satement: len(blockStmt.Statements) != len(expected.Statements)")
+		return !ok
+	}
+
+	for i, expectedStmt := range expected.Statements {
+		pass := expectedStmt.Test(t, blockStmt.Statements[i])
+		if !pass {
+			t.Errorf("Block statement error")
+			return !ok
+		}
+	}
+	return ok
+}

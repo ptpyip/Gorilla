@@ -62,3 +62,97 @@ func (returnStmt *ReturnStatement) ToString() string {
 	out.WriteString(returnStmt.ReturnValue.ToString())
 	return out.String()
 }
+
+type BlockStatement struct {
+	Statements []StatementNode
+}
+
+func (blockStmt *BlockStatement) statementNode() {}
+
+func (blockStmt *BlockStatement) GetTokenType() token.TokenType {
+	return token.LBRACKET
+}
+
+func (blockStmt *BlockStatement) GetTokenLiteral() string {
+	return "{"
+}
+
+func (blockStmt *BlockStatement) AppendStatement(statement StatementNode) {
+	blockStmt.Statements = append(blockStmt.Statements, statement)
+}
+
+func (blockStmt *BlockStatement) ToString() string {
+	var out bytes.Buffer
+	out.WriteString("{\n")
+	for i, stmt := range blockStmt.Statements {
+		out.WriteString("\t")
+		out.WriteString(stmt.ToString())
+		if i+1 != len(blockStmt.Statements) {
+			out.WriteString(";\n")
+		}
+	}
+	out.WriteString("\n}")
+	return out.String()
+}
+
+type IfStatement struct {
+	IfToken token.Token
+	// Conditions []ExpressionNode
+	// Statements []StatementNode
+	Condition ExpressionNode
+	Statement StatementNode
+	Else      *ElseStatement
+}
+
+func (ifStmt *IfStatement) statementNode() {}
+
+func (ifStmt *IfStatement) GetTokenType() token.TokenType {
+	return token.IF
+}
+
+func (ifStmt *IfStatement) GetTokenLiteral() string {
+	return "if"
+}
+
+func (ifStmt *IfStatement) ToString() string {
+	var out bytes.Buffer
+	out.WriteString("if ( " + ifStmt.Condition.ToString() + " ) {\n\t")
+	out.WriteString(ifStmt.Statement.ToString())
+	out.WriteString("\n} ")
+	if ifStmt.Else != nil {
+		out.WriteString(ifStmt.Else.ToString())
+		// out.WriteString(" else {\n\t")
+		// out.WriteString(ifStmt.Else.Statement.ToString())
+		// out.WriteString("\n}")
+	}
+	return out.String()
+}
+
+type ElseStatement struct {
+	ElseToken token.Token
+	Statement StatementNode
+}
+
+func (elseStmt *ElseStatement) statementNode() {}
+
+func (elseStmt *ElseStatement) GetTokenType() token.TokenType {
+	return token.ELSE
+}
+
+func (elseStmt *ElseStatement) GetTokenLiteral() string {
+	return "else"
+}
+
+func (elseStmt *ElseStatement) ToString() string {
+	var out bytes.Buffer
+	out.WriteString("else ")
+	if elseStmt.Statement.GetTokenType() != token.IF {
+		out.WriteString("{\n\t")
+		out.WriteString(elseStmt.Statement.ToString())
+		out.WriteString("\n}")
+	} else {
+		out.WriteString(elseStmt.Statement.ToString())
+	}
+
+	return out.String()
+}

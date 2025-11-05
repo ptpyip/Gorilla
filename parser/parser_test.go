@@ -5,11 +5,61 @@ import (
 	"gorilla/expected"
 	"gorilla/lexer"
 	"gorilla/token"
-	"strings"
 	"testing"
 )
 
 func TestParser(t *testing.T) {
+	testParseProgram(t, `
+		let x = 5;
+		{
+			{
+				let a = 5 < 4 != 3 > 4;
+				return !x; 
+			}
+			return (x > 1) && !a;
+		}
+	`, []expected.Node{
+		&expected.LetStatement{"x", expected.NewIntegerLiteral(5)},
+		expected.NewBlockStatement(
+			expected.NewBlockStatement(
+				&expected.LetStatement{"a",
+					&expected.Infix{
+						token.NOT_EQ,
+						&expected.Infix{
+							token.LT,
+							&expected.IntegerLiteral{Value: 5},
+							&expected.IntegerLiteral{Value: 4},
+						},
+						&expected.Infix{
+							token.GT,
+							&expected.IntegerLiteral{Value: 3},
+							&expected.IntegerLiteral{Value: 4},
+						},
+					},
+				},
+				&expected.ReturnStatement{
+					&expected.Prefix{
+						token.BANG,
+						&expected.Identifier{Name: "x"},
+					},
+				},
+			),
+			&expected.ReturnStatement{
+				&expected.Infix{
+					token.AND,
+					&expected.Infix{
+						token.GT,
+						&expected.Identifier{Name: "x"},
+						&expected.IntegerLiteral{Value: 1},
+					},
+					&expected.Prefix{
+						token.BANG,
+						&expected.Identifier{Name: "a"},
+					},
+				},
+			},
+		),
+	})
 
 	testParseProgram(t, `
 		let x = 5;
@@ -205,15 +255,17 @@ func TestParser(t *testing.T) {
 func testParseProgram(t *testing.T,
 	tests string, expectedNodes []expected.Node,
 ) {
-	// vlidate testcases
-	num_lines := len(strings.Split(tests, ";")) - 1
-	expected_lines := len(expectedNodes)
-	if num_lines != expected_lines {
-		t.Fatalf("Invalid testcases: num_lines %d != expected_lines %d",
-			num_lines, expected_lines,
-		)
-		return
-	}
+	num_lines := len(expectedNodes)
+
+	// TODO: vlidate testcases  (bugged when using block statement)
+	// num_lines := len(strings.Split(tests, ";")) - 1
+	// expected_lines := len(expectedNodes)
+	// if num_lines != expected_lines {
+	// 	t.Fatalf("Invalid testcases: num_lines %d != expected_lines %d",
+	// 		num_lines, expected_lines,
+	// 	)
+	// 	return
+	// }
 
 	// parse input
 	lx := lexer.NewLexer(tests)
@@ -223,14 +275,14 @@ func testParseProgram(t *testing.T,
 	if !ok {
 		errors := p.errors
 
-		tokens := p.GetTokens()
-		for i, tok := range tokens {
-			t.Logf("token %d: %q", i, tok.Literal)
-		}
+		// tokens := p.GetTokens()
+		// for i, tok := range tokens {
+		// 	t.Logf("token %d: %q", i, tok.Literal)
+		// }
 
 		// print statements
 		for _, stmt := range prog.Statements {
-			t.Logf("stmt %d: %q", stmt, stmt.GetTokenLiteral())
+			t.Logf("stmt %q", stmt.ToString())
 
 		}
 
@@ -245,7 +297,12 @@ func testParseProgram(t *testing.T,
 	}
 
 	// test program statements
-	if len(prog.Statements) != num_lines {
+	if len(prog.Statements) < num_lines {
+		t.Log("len(prog.Statements) < num_lines")
+		t.Logf("len(prog.Statements) = %d", len(prog.Statements))
+		t.Logf("num_lines = %d", num_lines)
+		testParserErrors(t, p.errors)
+	} else if len(prog.Statements) > num_lines {
 		for _, stmt := range prog.Statements {
 			letStmt, _ := stmt.(*ast.LetStatement)
 			t.Logf("stmt %d: %q", stmt, letStmt.Identifier.GetName())

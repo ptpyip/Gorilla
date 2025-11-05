@@ -2,7 +2,9 @@ package parser
 
 import (
 	"fmt"
+	"gorilla/ast"
 	"gorilla/token"
+	"strconv"
 )
 
 func (p *Parser) raiseErrorAndPanic(msg string) {
@@ -31,4 +33,17 @@ func (p *Parser) raiseExpressionError() {
 			p.nextToken.Type,
 		),
 	)
+}
+
+func (p *Parser) raiseBloackStatementError(statements []ast.StatementNode) {
+	// print statements
+	for i, stmt := range statements {
+		p.raiseError("Prased [" + strconv.Itoa(i) + "]: " + stmt.ToString())
+
+	}
+
+	p.raiseError(
+		"current token: " + p.currentToken.Literal +
+			" Next token: " + p.nextToken.Literal)
+
 }

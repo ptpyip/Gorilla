@@ -19,16 +19,18 @@ func (p *Parser) ParseProgram() (*ast.Program, bool) {
 			// for _, msg := range p.errors {
 			// 	println(msg)
 			// }
+			p.raiseError("Could not parse statement with token: " + p.currentToken.Literal)
 			return prog, !ok
 		}
 
 		prog.Statements = append(prog.Statements, statement)
-		if p.currentToken.Type != token.SEMICOLON {
-			p.raiseNextTokenError(token.SEMICOLON)
-			return prog, !ok
+		if p.currentToken.Type == token.SEMICOLON {
+			p.loadNextToken()
+			// p.raiseNextTokenError(token.SEMICOLON)
+			// return prog, !ok
 		}
 
-		p.loadNextToken()
+		// p.loadNextToken()
 	}
 	return prog, ok
 }
@@ -82,18 +84,58 @@ func (p *Parser) parseStatement() ast.StatementNode {
 			p.raiseExpressionError()
 			return nil
 		}
-		p.loadNextToken()
+		p.skipToSemicolon()
 
 		return &ast.ReturnStatement{ReturnValue: returnValue}
 
+	case token.LBRACE:
+		block, ok := p.parseBlockStament()
+		if !ok {
+			p.raiseError("Could not parse block statement")
+			return nil
+		}
+		return block
+	case token.RBRACE:
+		return nil
+
 	case token.SEMICOLON:
-		p.raiseError("Unexpected semicolon")
+		p.raiseError("Unexpected token: " + p.currentToken.Literal)
 		return nil
 
 	default:
+		p.raiseError("Unexpected token: " + p.currentToken.Literal)
 		p.loadNextToken()
 		return nil
 	}
+}
+
+func (p *Parser) parseBlockStament() (*ast.BlockStatement, bool) {
+	ok := true
+
+	if p.currentToken.Type != token.LBRACE {
+		p.raiseNextTokenError(token.LBRACE)
+		return nil, !ok
+	}
+	p.loadNextToken()
+
+	block := &ast.BlockStatement{}
+	for p.currentToken.Type != token.RBRACE {
+		println("Parsing block statement: ", p.currentToken.Literal)
+		statement := p.parseStatement()
+		if statement == nil {
+			p.raiseBloackStatementError(block.Statements)
+			return nil, !ok
+		}
+
+		block.AppendStatement(statement)
+		if p.currentToken.Type == token.SEMICOLON {
+			p.loadNextToken()
+		}
+	}
+	p.loadNextToken() // load token after '}'
+	println("Finsh parsing block statement: with ", len(block.Statements), " statements")
+
+	return block, ok
 }
 
 func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool) {
@@ -187,6 +229,7 @@ func (p *Parser) parsePrefix() (ast.ExpressionNode, bool) {
 
 		inner_expression, ok := p.parseExpression(precedences.LOWEST)
 		if !ok {
+			p.raiseError("Could not parse LPAREN expression")
 			return nil, !ok
 		}
 

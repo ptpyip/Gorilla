@@ -11,7 +11,7 @@ func (lx *Lexer) GetNextToken() token.Token {
 	case 0:
 		return token.Token{
 			Type:    token.EOF,
-			Literal: "",
+			Literal: "EOF",
 		}
 	case '=':
 		if lx.getNextChar() == '=' {
@@ -116,6 +116,14 @@ func (lx *Lexer) GetNextToken() token.Token {
 	}
 
 	// get new token from char
+
+	if nextTokenType == token.ILLEGAL {
+		return token.Token{
+			Type:    token.ILLEGAL,
+			Literal: string(token.ILLEGAL),
+		}
+	}
+
 	return token.NewToken(nextTokenType, lx.currentChar)
 
 }

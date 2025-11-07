@@ -82,3 +82,42 @@ func (inFix *Infix) ToString() string {
 
 	return out.String()
 }
+
+type Trinary struct {
+	// Operator token.Token
+	Left   ExpressionNode
+	Middle ExpressionNode
+	Right  ExpressionNode
+}
+
+func (trinary *Trinary) expressionNode() {}
+
+func (trinary *Trinary) GetTokenType() token.TokenType {
+	return token.IF
+}
+
+func (trinary *Trinary) GetTokenLiteral() string {
+	return ""
+}
+
+func (trinary *Trinary) GetOperatorType() token.TokenType {
+	return trinary.GetTokenType()
+}
+
+func (trinary *Trinary) GetOperands() []ExpressionNode {
+	return []ExpressionNode{trinary.Left, trinary.Middle, trinary.Right}
+}
+
+func (trinary *Trinary) ToString() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(trinary.Left.ToString())
+	out.WriteString(" if ")
+	out.WriteString(trinary.Middle.ToString())
+	out.WriteString(" else ")
+	out.WriteString(trinary.Right.ToString())
+	out.WriteString(")")
+
+	return out.String()
+}

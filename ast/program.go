@@ -95,13 +95,21 @@ func (blockStmt *BlockStatement) ToString() string {
 	return out.String()
 }
 
+func NewIfStatement(condition ExpressionNode, block *BlockStatement) *IfStatement {
+	return &IfStatement{condition, block, nil}
+}
+
+func NewIfElseStatement(condition ExpressionNode, block *BlockStatement, elseBlock StatementNode) *IfStatement {
+	return &IfStatement{condition, block, &ElseStatement{elseBlock}}
+}
+
 type IfStatement struct {
-	IfToken token.Token
+	// IfToken token.Token
 	// Conditions []ExpressionNode
 	// Statements []StatementNode
 	Condition ExpressionNode
-	Statement StatementNode
-	Else      *ElseStatement
+	Statement *BlockStatement
+	Else      *ElseStatement // nullable
 }
 
 func (ifStmt *IfStatement) statementNode() {}
@@ -116,9 +124,9 @@ func (ifStmt *IfStatement) GetTokenLiteral() string {
 
 func (ifStmt *IfStatement) ToString() string {
 	var out bytes.Buffer
-	out.WriteString("if ( " + ifStmt.Condition.ToString() + " ) {\n\t")
+	out.WriteString("if " + ifStmt.Condition.ToString() + " ")
 	out.WriteString(ifStmt.Statement.ToString())
-	out.WriteString("\n} ")
+	// out.WriteString("\n} ")
 	if ifStmt.Else != nil {
 		out.WriteString(ifStmt.Else.ToString())
 		// out.WriteString(" else {\n\t")
@@ -129,8 +137,8 @@ func (ifStmt *IfStatement) ToString() string {
 }
 
 type ElseStatement struct {
-	ElseToken token.Token
-	Statement StatementNode
+	// ElseToken token.Token
+	Statement StatementNode // IfStatement or BlockStatement
 }
 
 func (elseStmt *ElseStatement) statementNode() {}

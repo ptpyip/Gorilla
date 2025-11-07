@@ -10,6 +10,7 @@ import (
 
 func TestParser(t *testing.T) {
 	testParseProgram(t, `
+		if (5 < 4) { let x = 5; }
 		let x = 5;
 		{
 			{
@@ -19,6 +20,7 @@ func TestParser(t *testing.T) {
 			return (x > 1) && !a;
 		}
 	`, []expected.Node{
+		&expected.SkipNode{},
 		&expected.LetStatement{"x", expected.NewIntegerLiteral(5)},
 		expected.NewBlockStatement(
 			expected.NewBlockStatement(

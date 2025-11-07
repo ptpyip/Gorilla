@@ -44,9 +44,7 @@ func (p *Parser) parseStatement() ast.StatementNode {
 		}
 		p.loadNextToken()
 
-		identifier := &ast.IdentifierNode{
-			Token: p.currentToken,
-		}
+		identifier := &ast.IdentifierNode{p.currentToken}
 		p.loadNextToken()
 
 		if p.currentToken.Type != token.ASSIGN {
@@ -60,24 +58,20 @@ func (p *Parser) parseStatement() ast.StatementNode {
 			p.raiseExpressionError()
 			return nil
 		}
-
-		stmt := &ast.LetStatement{
-			Identifier: identifier,
-			Expression: expression,
-		}
 		p.loadNextToken()
 
-		// handle expressiion
-
+		stmt := &ast.LetStatement{identifier, expression}
 		p.skipToSemicolon()
+
 		return stmt
 
 	case token.RETURN:
-		if p.nextToken.Type == token.SEMICOLON {
-			p.raiseExpressionError()
-			return nil
-		}
 		p.loadNextToken()
+
+		if p.currentToken.Type == token.SEMICOLON {
+			// empty return
+			return &ast.ReturnStatement{}
+		}
 
 		returnValue, ok := p.parseExpression(precedences.LOWEST)
 		if !ok {
@@ -86,7 +80,15 @@ func (p *Parser) parseStatement() ast.StatementNode {
 		}
 		p.skipToSemicolon()
 
-		return &ast.ReturnStatement{ReturnValue: returnValue}
+		return &ast.ReturnStatement{returnValue}
+
+	case token.IF:
+		stmt, ok := p.parseIfElseStatement()
+		if !ok {
+			p.raiseError("Could not parse if statement")
+			return nil
+		}
+		return stmt
 
 	case token.LBRACE:
 		block, ok := p.parseBlockStament()
@@ -136,6 +138,51 @@ func (p *Parser) parseBlockStament() (*ast.BlockStatement, bool) {
 	println("Finsh parsing block statement: with ", len(block.Statements), " statements")
 
 	return block, ok
+}
+
+func (p *Parser) parseIfElseStatement() (ast.StatementNode, bool) {
+	ok := true
+
+	if p.nextToken.Type != token.LPAREN {
+		p.raiseNextTokenError(token.LPAREN)
+		return nil, !ok
+	}
+	p.loadNextToken()
+
+	condition, ok := p.parseExpression(precedences.LOWEST)
+	if !ok {
+		p.raiseExpressionError()
+		return nil, !ok
+	}
+	p.loadNextToken()
+
+	block, ok := p.parseBlockStament()
+	if !ok {
+		p.raiseError("Could not parse block statement")
+		return nil, !ok
+	}
+
+	if p.currentToken.Type != token.ELSE {
+		return ast.NewIfStatement(condition, block), ok
+	}
+	p.loadNextToken()
+
+	var elseBlock ast.StatementNode
+	if p.currentToken.Type == token.IF {
+		elseBlock = p.parseStatement()
+		if elseBlock == nil {
+			p.raiseError("Could not parse else if statement")
+			return nil, !ok
+		}
+
+	} else {
+		elseBlock, ok = p.parseBlockStament()
+		if !ok {
+			p.raiseError("Could not parse else statement")
+			return nil, !ok
+		}
+	}
+	return ast.NewIfElseStatement(condition, block, elseBlock), ok
 }
 
 func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool) {

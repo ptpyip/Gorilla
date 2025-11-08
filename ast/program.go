@@ -153,14 +153,16 @@ func (elseStmt *ElseStatement) GetTokenLiteral() string {
 
 func (elseStmt *ElseStatement) ToString() string {
 	var out bytes.Buffer
-	out.WriteString("else ")
-	if elseStmt.Statement.GetTokenType() != token.IF {
-		out.WriteString("{\n\t")
-		out.WriteString(elseStmt.Statement.ToString())
-		out.WriteString("\n}")
-	} else {
-		out.WriteString(elseStmt.Statement.ToString())
-	}
+	out.WriteString(" else ")
+	// if elseStmt.Statement.GetTokenType() != token.IF {
+	// 	// out.WriteString("{\n\t")
+	// 	out.WriteString(elseStmt.Statement.ToString())
+	// 	// out.WriteString("\n}")
+	// } else {
+	// 	out.WriteString(elseStmt.Statement.ToString())
+	// }
+
+	out.WriteString(elseStmt.Statement.ToString())
 
 	return out.String()
 }

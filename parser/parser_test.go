@@ -9,8 +9,45 @@ import (
 )
 
 func TestParser(t *testing.T) {
+
 	testParseProgram(t, `
-		if (5 < 4) { let x = 5; }
+	if (x == y) { 
+		let x = 5; 
+	} else if (x > y) {
+		let x = 6;
+	} else {
+		let x = 10; 
+	}
+	`, []expected.Node{
+		&expected.IfStatement{
+			&expected.Infix{
+				token.EQ,
+				&expected.Identifier{Name: "x"},
+				&expected.Identifier{Name: "y"},
+			},
+			expected.NewBlockStatement(
+				&expected.LetStatement{"x", expected.NewIntegerLiteral(5)},
+			),
+			expected.NewElseIfStatement(
+				&expected.Infix{
+					token.GT,
+					&expected.Identifier{Name: "x"},
+					&expected.Identifier{Name: "y"},
+				},
+				expected.NewBlockStatement(
+					&expected.LetStatement{"x", expected.NewIntegerLiteral(6)},
+				),
+				&expected.ElseStatement{
+					Statement: expected.NewBlockStatement(
+						&expected.LetStatement{"x", expected.NewIntegerLiteral(10)},
+					),
+				},
+			),
+		},
+	})
+
+	testParseProgram(t, `
+
 		let x = 5;
 		{
 			{
@@ -20,7 +57,6 @@ func TestParser(t *testing.T) {
 			return (x > 1) && !a;
 		}
 	`, []expected.Node{
-		&expected.SkipNode{},
 		&expected.LetStatement{"x", expected.NewIntegerLiteral(5)},
 		expected.NewBlockStatement(
 			expected.NewBlockStatement(

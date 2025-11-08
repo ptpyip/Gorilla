@@ -22,12 +22,12 @@ func (expected *LetStatement) getTokenLiteral() string {
 func (expected *LetStatement) Test(t *testing.T, node ast.Node) bool {
 	letStmt, ok := node.(*ast.LetStatement)
 	if !ok {
-		t.Errorf("Let satetment not found. Got %q token", node.GetTokenType())
+		t.Errorf("Let statement not found. Got %q token", node.GetTokenType())
 		return false
 	}
 
 	if letStmt.Identifier == nil {
-		t.Errorf("Invalid Let satement: Identifier is nil")
+		t.Errorf("Invalid Let statement: Identifier is nil")
 		return false
 	}
 
@@ -40,7 +40,7 @@ func (expected *LetStatement) Test(t *testing.T, node ast.Node) bool {
 	}
 
 	if letStmt.Expression == nil {
-		t.Errorf("Invalid Let satement: Expression is nil")
+		t.Errorf("Invalid Let statement: Expression is nil")
 		return false
 	}
 
@@ -62,12 +62,12 @@ func (expected *ReturnStatement) getTokenLiteral() string {
 func (expected *ReturnStatement) Test(t *testing.T, node ast.Node) bool {
 	returnStmt, ok := node.(*ast.ReturnStatement)
 	if !ok {
-		t.Errorf("let satetment not found. Got %q token", node.GetTokenType())
+		t.Errorf("let statement not found. Got %q token", node.GetTokenType())
 		return false
 	}
 
 	if returnStmt.ReturnValue == nil {
-		t.Errorf("Invalid Return satement: ReturnValue is nil")
+		t.Errorf("Invalid Return statement: ReturnValue is nil")
 		return false
 	}
 
@@ -91,14 +91,20 @@ func (expected *BlockStatement) getTokenLiteral() string {
 }
 
 func (expected *BlockStatement) Test(t *testing.T, node ast.Node) bool {
+	ok := true
+	if node == nil {
+		t.Errorf("Expected Block statement but got nil")
+		return !ok
+	}
+
 	blockStmt, ok := node.(*ast.BlockStatement)
 	if !ok {
-		t.Errorf("Block satetment not found. Got %q token", node.GetTokenType())
+		t.Errorf("Block statement not found. Got %q token", node.GetTokenType())
 		return !ok
 	}
 
 	if len(blockStmt.Statements) != len(expected.Statements) {
-		t.Errorf("Invalid Block satement: len(blockStmt.Statements) != len(expected.Statements)")
+		t.Errorf("Invalid Block statement: len(blockStmt.Statements) != len(expected.Statements)")
 		return !ok
 	}
 
@@ -112,18 +118,78 @@ func (expected *BlockStatement) Test(t *testing.T, node ast.Node) bool {
 	return ok
 }
 
-type SkipNode struct{}
-
-func (expected *SkipNode) getTokenType() token.TokenType {
-	return token.ILLEGAL
+type IfStatement struct {
+	Condition ExpressionNode
+	Statement StatementNode
+	Else      *ElseStatement
 }
 
-func (expected *SkipNode) getTokenLiteral() string {
-	return ""
+func (expected *IfStatement) getTokenType() token.TokenType {
+	return token.IF
 }
 
-func (expected *SkipNode) Test(t *testing.T, node ast.Node) bool {
-	t.Log("Skipping...")
-	t.Log(node.ToString())
-	return true
+func (expected *IfStatement) getTokenLiteral() string {
+	return "if"
+}
+
+func (expected *IfStatement) Test(t *testing.T, node ast.Node) bool {
+	ifStmt, ok := node.(*ast.IfStatement)
+	if !ok {
+		t.Errorf("If statement not found. Got %q token", node.GetTokenType())
+		return !ok
+	}
+
+	if !expected.Condition.Test(t, ifStmt.Condition) {
+		t.Errorf("Invalid If statement: Incorrect condition")
+		return !ok
+	}
+
+	if !expected.Statement.Test(t, ifStmt.Statement) {
+		t.Errorf("Invalid If statement: Incorrect statement")
+		return !ok
+	}
+
+	if expected.Else != nil {
+		return expected.Else.Test(t, ifStmt.Else)
+	}
+
+	return ok
+}
+
+type ElseStatement struct {
+	Statement StatementNode
+}
+
+func (expected *ElseStatement) getTokenType() token.TokenType {
+	return token.ELSE
+}
+
+func (expected *ElseStatement) getTokenLiteral() string {
+	return "else"
+}
+
+func (expected *ElseStatement) Test(t *testing.T, node ast.Node) bool {
+	ok := true
+
+	if node == nil {
+		t.Errorf("Expected Else statement but got nil")
+		return !ok
+	}
+
+	elseStmt, ok := node.(*ast.ElseStatement)
+	if !ok {
+		t.Errorf("Else statement not found. Got %q token", node.GetTokenType())
+		return !ok
+	}
+
+	if !expected.Statement.Test(t, elseStmt.Statement) {
+		t.Errorf("Invalid Else statement: Incorrect statement")
+		return !ok
+	}
+
+	return ok
+}
+
+func NewElseIfStatement(condition ExpressionNode, stmt StatementNode, elseNode *ElseStatement) *ElseStatement {
+	return &ElseStatement{&IfStatement{condition, stmt, elseNode}}
 }

@@ -122,7 +122,7 @@ func (p *Parser) parseBlockStament() (*ast.BlockStatement, bool) {
 
 	block := &ast.BlockStatement{}
 	for p.currentToken.Type != token.RBRACE {
-		println("Parsing block statement: ", p.currentToken.Literal)
+		// println("Parsing block statement: ", p.currentToken.Literal)
 		statement := p.parseStatement()
 		if statement == nil {
 			p.raiseBloackStatementError(block.Statements)
@@ -135,7 +135,7 @@ func (p *Parser) parseBlockStament() (*ast.BlockStatement, bool) {
 		}
 	}
 	p.loadNextToken() // load token after '}'
-	println("Finsh parsing block statement: with ", len(block.Statements), " statements")
+	// println("Finsh parsing block statement: with ", len(block.Statements), " statements")
 
 	return block, ok
 }
@@ -186,7 +186,7 @@ func (p *Parser) parseIfElseStatement() (ast.StatementNode, bool) {
 }
 
 func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool) {
-	println("Parsing :" + p.currentToken.Literal)
+	// println("Parsing :" + p.currentToken.Literal)
 	ok := true
 
 	var expr ast.ExpressionNode
@@ -324,8 +324,8 @@ func (p *Parser) parseInfix(left ast.ExpressionNode) (ast.ExpressionNode, bool) 
 	precedence := p.getCurrentPrecedence()
 	p.loadNextToken()
 
-	println("Infix operator: " + operator.Literal)
-	println("\twith operator precedence = ", precedence)
+	// println("Infix operator: " + operator.Literal)
+	// println("\twith operator precedence = ", precedence)
 
 	var right ast.ExpressionNode
 	switch operator.Type {
@@ -333,29 +333,29 @@ func (p *Parser) parseInfix(left ast.ExpressionNode) (ast.ExpressionNode, bool) 
 	case token.PLUS, token.MINUS:
 		right, ok = p.parseExpression(precedence)
 		if !ok {
-			println(" algrithmic error ", operator.Literal)
+			p.raiseError(" algrithmic error " + operator.Literal)
 			return nil, !ok
 		}
 
 	case token.ASTERISK, token.SLASH:
 		right, ok = p.parseExpression(precedence)
 		if !ok {
-			println(" algrithmic error ", operator.Literal)
+			p.raiseError(" algrithmic error " + operator.Literal)
 			return nil, !ok
+
 		}
 
 	// comparison operators
 	case token.EQ, token.NOT_EQ, token.LE, token.GE:
 		right, ok = p.parseExpression(precedence)
 		if !ok {
-			println(" algrithmic error ", operator.Literal)
 			return nil, !ok
 		}
 
 	case token.LT, token.GT:
 		right, ok = p.parseExpression(precedence)
 		if !ok {
-			println(" comparison error ", operator.Literal)
+			p.raiseError(" comparison error " + operator.Literal)
 			return nil, !ok
 		}
 

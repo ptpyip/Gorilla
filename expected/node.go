@@ -26,10 +26,25 @@ type ExpressionNode interface {
 	Node
 }
 
+type SkipNode struct{}
+
+func (expected *SkipNode) getTokenType() token.TokenType {
+	return token.ILLEGAL
+}
+
+func (expected *SkipNode) getTokenLiteral() string {
+	return ""
+}
+
+func (expected *SkipNode) Test(t *testing.T, node ast.Node) bool {
+	t.Log("Skipping...")
+	t.Log(node.ToString())
+	return true
+}
+
 // func (els *Le) getTokenLiteral() string {
 // 	return "let"
 // }
-
 // func (els *ExpectedLetStatement) getTokenType() token.TokenType {
 // 	return token.LET
 // }

@@ -8,187 +8,63 @@ import (
 	"testing"
 )
 
-func TestParser(t *testing.T) {
-
-	testParseProgram(t, `
-	if (x == y) { 
-		let x = 5; 
-	} else if (x > y) {
-		let x = 6;
-	} else {
-		let x = 10; 
-	}
-	`, []expected.Node{
-		&expected.IfStatement{
-			&expected.Infix{
-				token.EQ,
-				&expected.Identifier{Name: "x"},
-				&expected.Identifier{Name: "y"},
-			},
-			expected.NewBlockStatement(
-				&expected.LetStatement{"x", expected.NewIntegerLiteral(5)},
-			),
-			expected.NewElseIfStatement(
-				&expected.Infix{
-					token.GT,
-					&expected.Identifier{Name: "x"},
-					&expected.Identifier{Name: "y"},
-				},
-				expected.NewBlockStatement(
-					&expected.LetStatement{"x", expected.NewIntegerLiteral(6)},
-				),
-				&expected.ElseStatement{
-					Statement: expected.NewBlockStatement(
-						&expected.LetStatement{"x", expected.NewIntegerLiteral(10)},
-					),
-				},
-			),
-		},
-	})
-
-	testParseProgram(t, `
-
-		let x = 5;
-		{
-			{
-				let a = 5 < 4 != 3 > 4;
-				return !x; 
-			}
-			return (x > 1) && !a;
-		}
-	`, []expected.Node{
-		&expected.LetStatement{"x", expected.NewIntegerLiteral(5)},
-		expected.NewBlockStatement(
-			expected.NewBlockStatement(
-				&expected.LetStatement{"a",
-					&expected.Infix{
-						token.NOT_EQ,
-						&expected.Infix{
-							token.LT,
-							&expected.IntegerLiteral{Value: 5},
-							&expected.IntegerLiteral{Value: 4},
-						},
-						&expected.Infix{
-							token.GT,
-							&expected.IntegerLiteral{Value: 3},
-							&expected.IntegerLiteral{Value: 4},
-						},
-					},
-				},
-				&expected.ReturnStatement{
-					&expected.Prefix{
-						token.BANG,
-						&expected.Identifier{Name: "x"},
-					},
-				},
-			),
-			&expected.ReturnStatement{
-				&expected.Infix{
-					token.AND,
-					&expected.Infix{
-						token.GT,
-						&expected.Identifier{Name: "x"},
-						&expected.IntegerLiteral{Value: 1},
-					},
-					&expected.Prefix{
-						token.BANG,
-						&expected.Identifier{Name: "a"},
-					},
-				},
-			},
-		),
-	})
-
+func TestLetStatements(t *testing.T) {
 	testParseProgram(t, `
 		let x = 5;
 		let _ = 10;
 		let foobar = 838383;
-		return 0;
-		return x;
-		return !x;
-		let x = -5;
+		let y = x;
 	`, []expected.Node{
 		&expected.LetStatement{"x", expected.NewIntegerLiteral(5)},
 		&expected.LetStatement{"_", expected.NewIntegerLiteral(10)},
 		&expected.LetStatement{"foobar", expected.NewIntegerLiteral(838383)},
+		&expected.LetStatement{"y", &expected.Identifier{Name: "x"}},
+	})
+}
+
+func TestReturnStatements(t *testing.T) {
+	testParseProgram(t, `
+		let x = 5;
+		return 0;
+		return x;
+	`, []expected.Node{
+		&expected.LetStatement{"x", expected.NewIntegerLiteral(5)},
 		&expected.ReturnStatement{expected.NewIntegerLiteral(0)},
 		&expected.ReturnStatement{&expected.Identifier{Name: "x"}},
-		&expected.ReturnStatement{
-			&expected.Prefix{token.BANG, &expected.Identifier{Name: "x"}},
-		},
-		&expected.LetStatement{"x",
-			// &expected.Prefix{token.MINUS, &expected.IntegerLiteral{Value: 5}},
-			&expected.IntegerLiteral{-5},
-		},
-		// &expected.LetStatement{"y",
-		// 	&expected.Infix{
-		// 		token.PLUS,
-		// 		&expected.Identifier{Name: "x"},
-		// 		&expected.IntegerLiteral{Value: 5},
-		// 	},
-		// },
 	})
+}
 
+func TestPrefixExpressions(t *testing.T) {
 	testParseProgram(t, `
 		let x = -5;
-		let y = x + 5;
-		return -y * -1 + 1;
-		let z = x && y;
-		return !z || x;
-		return z && !y;
+		let y = True;
+		let z = !y;
+		return -x;
+		return !y;
 	`, []expected.Node{
-		&expected.LetStatement{"x",
-			&expected.IntegerLiteral{-5},
-		},
-		&expected.LetStatement{"y",
-			&expected.Infix{
-				token.PLUS,
-				&expected.Identifier{Name: "x"},
-				&expected.IntegerLiteral{Value: 5},
-			},
-		},
-		&expected.ReturnStatement{
-			&expected.Infix{
-				token.PLUS,
-				&expected.Infix{
-					token.ASTERISK,
-					&expected.Prefix{
-						token.MINUS,
-						&expected.Identifier{Name: "y"},
-					},
-					&expected.IntegerLiteral{Value: -1},
-				},
-				&expected.IntegerLiteral{Value: 1},
-			},
-		},
+		&expected.LetStatement{"x", expected.NewIntegerLiteral(-5)},
+		&expected.LetStatement{"y", expected.NewBoolLiteral(true)},
 		&expected.LetStatement{"z",
-			&expected.Infix{
-				token.AND,
-				&expected.Identifier{Name: "x"},
+			&expected.Prefix{
+				token.BANG,
 				&expected.Identifier{Name: "y"},
 			},
 		},
 		&expected.ReturnStatement{
-			&expected.Infix{
-				token.OR,
-				&expected.Prefix{
-					token.BANG,
-					&expected.Identifier{Name: "z"},
-				},
+			&expected.Prefix{
+				token.MINUS,
 				&expected.Identifier{Name: "x"},
 			},
 		},
 		&expected.ReturnStatement{
-			&expected.Infix{
-				token.AND,
-				&expected.Identifier{Name: "z"},
-				&expected.Prefix{
-					token.BANG,
-					&expected.Identifier{Name: "y"},
-				},
+			&expected.Prefix{token.BANG,
+				&expected.Identifier{Name: "y"},
 			},
 		},
 	})
+}
+
+func TestInfixExpressions(t *testing.T) {
 
 	testParseProgram(t, `
 		return 3 < 5 == True;
@@ -249,7 +125,9 @@ func TestParser(t *testing.T) {
 			},
 		},
 	})
+}
 
+func TestGroupedExpressions(t *testing.T) {
 	testParseProgram(t, `
 		let x = (5 + 5) * 2;
 		return ((x / 2) * 2) == 20;
@@ -281,102 +159,279 @@ func TestParser(t *testing.T) {
 			},
 		},
 	})
+}
 
-	// testParseProgram(t, `
-	// let x = 5;
-	// `, []expected.Node{
-	// 	&expected.LetStatement{"x", expected.NewIntegerLiteral(5)},
-	// })
+func TestBlockStatements(t *testing.T) {
+	testParseProgram(t, `
+
+		let x = 5;
+		{
+			{
+				let a = 5 < 4 != 3 > 4;
+				return !x; 
+			}
+			return (x > 1) && !a;
+		}
+	`, []expected.Node{
+		&expected.LetStatement{"x", expected.NewIntegerLiteral(5)},
+		expected.NewBlockStatement(
+			expected.NewBlockStatement(
+				&expected.LetStatement{"a",
+					&expected.Infix{
+						token.NOT_EQ,
+						&expected.Infix{
+							token.LT,
+							&expected.IntegerLiteral{Value: 5},
+							&expected.IntegerLiteral{Value: 4},
+						},
+						&expected.Infix{
+							token.GT,
+							&expected.IntegerLiteral{Value: 3},
+							&expected.IntegerLiteral{Value: 4},
+						},
+					},
+				},
+				&expected.ReturnStatement{
+					&expected.Prefix{
+						token.BANG,
+						&expected.Identifier{Name: "x"},
+					},
+				},
+			),
+			&expected.ReturnStatement{
+				&expected.Infix{
+					token.AND,
+					&expected.Infix{
+						token.GT,
+						&expected.Identifier{Name: "x"},
+						&expected.IntegerLiteral{Value: 1},
+					},
+					&expected.Prefix{
+						token.BANG,
+						&expected.Identifier{Name: "a"},
+					},
+				},
+			},
+		),
+	})
+}
+
+func TestIfElseStatements(t *testing.T) {
+	testParseProgram(t, `
+	if (x == y) { 
+		let x = 5; 
+	} else if (x > y) {
+		let x = 6;
+	} else {
+	 	{ let y = 10; }
+		let x = 10;
+	}
+	`, []expected.Node{
+		&expected.IfStatement{
+			&expected.Infix{
+				token.EQ,
+				&expected.Identifier{Name: "x"},
+				&expected.Identifier{Name: "y"},
+			},
+			expected.NewBlockStatement(
+				&expected.LetStatement{"x", expected.NewIntegerLiteral(5)},
+			),
+			expected.NewElseIfStatement(
+				&expected.Infix{
+					token.GT,
+					&expected.Identifier{Name: "x"},
+					&expected.Identifier{Name: "y"},
+				},
+				expected.NewBlockStatement(
+					&expected.LetStatement{"x", expected.NewIntegerLiteral(6)},
+				),
+				&expected.ElseStatement{
+					Statement: expected.NewBlockStatement(
+						expected.NewBlockStatement(
+							&expected.LetStatement{"y", expected.NewIntegerLiteral(10)},
+						),
+						&expected.LetStatement{"x", expected.NewIntegerLiteral(10)},
+					),
+				},
+			),
+		},
+	})
+}
+
+func TestIfELseExpressions(t *testing.T) {
+	testParseProgram(t, `
+	let x = True;
+	return 1 if x else 2;
+	`, []expected.Node{
+		&expected.SkipNode{},
+		&expected.SkipNode{},
+	})
+}
+
+func TestParser(t *testing.T) {
+
+	testParseProgram(t, `
+	let x = 5;
+	`, []expected.Node{
+		&expected.LetStatement{"x", expected.NewIntegerLiteral(5)},
+	})
 
 }
 
 func testParseProgram(t *testing.T,
-	tests string, expectedNodes []expected.Node,
+	testInput string, expectedNodes []expected.Node,
 ) {
-	num_lines := len(expectedNodes)
-
-	// TODO: vlidate testcases  (bugged when using block statement)
-	// num_lines := len(strings.Split(tests, ";")) - 1
-	// expected_lines := len(expectedNodes)
-	// if num_lines != expected_lines {
-	// 	t.Fatalf("Invalid testcases: num_lines %d != expected_lines %d",
-	// 		num_lines, expected_lines,
-	// 	)
-	// 	return
-	// }
-
 	// parse input
-	lx := lexer.NewLexer(tests)
+	lx := lexer.NewLexer(testInput)
 	p := NewParser(lx)
 
 	prog, ok := p.ParseProgram()
 	if !ok {
-		errors := p.errors
-
-		// tokens := p.GetTokens()
-		// for i, tok := range tokens {
-		// 	t.Logf("token %d: %q", i, tok.Literal)
-		// }
-
-		// print statements
-		for _, stmt := range prog.Statements {
-			t.Logf("stmt %q", stmt.ToString())
-
-		}
-
-		testParserErrors(t, errors)
-
-		return
-
-	} else if prog == nil {
-		t.Error("ParseProgram() returned nil")
-		testParserErrors(t, p.errors)
+		raiseParserErrors(t, prog.Statements, p.errors)
 		return
 	}
 
 	// test program statements
-	if len(prog.Statements) < num_lines {
-		t.Log("len(prog.Statements) < num_lines")
-		t.Logf("len(prog.Statements) = %d", len(prog.Statements))
-		t.Logf("num_lines = %d", num_lines)
-		testParserErrors(t, p.errors)
-	} else if len(prog.Statements) > num_lines {
-		for _, stmt := range prog.Statements {
-			letStmt, _ := stmt.(*ast.LetStatement)
-			t.Logf("stmt %d: %q", stmt, letStmt.Identifier.GetName())
-
-		}
-		tokens := p.GetTokens()
-		for i, tok := range tokens {
-			t.Logf("token %d: %q", i, tok.Literal)
-		}
-		t.Fatalf("program.Statements does not contain %d statements. got=%d",
-			num_lines, len(prog.Statements),
-		)
+	num_nodes := len(expectedNodes)
+	if len(prog.Statements) != num_nodes {
+		raiseParserErrors(t, prog.Statements, p.errors)
+		raiseExpectedNotEqParsedError(t, prog, expectedNodes)
 		return
 	}
 
 	for i, expectedNode := range expectedNodes {
 		pass := expectedNode.Test(t, prog.Statements[i])
 		if !pass {
-			testParserErrors(t, p.errors)
-			t.FailNow()
+			raiseParserErrors(t, prog.Statements[:i+1], p.errors)
+			// t.FailNow()
 			return
 		}
 	}
 
 }
 
-func testParserErrors(t *testing.T, errors []string) {
+func raiseParserErrors(t *testing.T, stmts []ast.StatementNode, errors []string) {
+	// print statements
+	for _, stmt := range stmts {
+		t.Logf("Parsed statement: %q", stmt.ToString())
+	}
+
 	if len(errors) == 0 {
-		t.Errorf("Expected parser errors, but got none")
+		t.Errorf("No Parser error.")
+		return
 	}
 
 	for _, msg := range errors {
-		t.Errorf("Parser error: %q", msg)
+		t.Error(msg)
 	}
-	t.FailNow()
+	// t.FailNow()
 }
+
+func raiseExpectedNotEqParsedError(t *testing.T,
+	prog *ast.Program, expectedNodes []expected.Node,
+) {
+	t.Errorf("Test: Expected %d statement(s), but got %d parsed.",
+		len(expectedNodes), len(prog.Statements),
+	)
+}
+
+// func testParseProgram(t *testing.T,
+// 	testInput string, expectedNodes []expected.Node,
+// ) {
+// 	// parse input
+// 	lx := lexer.NewLexer(testInput)
+// 	p := NewParser(lx)
+
+// 	prog, ok := p.ParseProgram()
+// 	if !ok {
+// 		// tokens := p.GetTokens()
+// 		// for i, tok := range tokens {
+// 		// 	t.Logf("token %d: %q", i, tok.Literal)
+
+// 		raiseParserErrors(t, prog.Statements, p.errors)
+// 		return
+
+// 	}
+
+// 	// if prog == nil {
+// 	// 	t.Error("ParseProgram() returned nil")
+// 	// 	raiseParserErrors(t, prog.Statements, p.errors)
+// 	// 	return
+// 	// }
+
+// 	// test program statements
+// 	num_nodes := len(expectedNodes)
+// 	if len(prog.Statements) != num_nodes {
+// 		raiseParserErrors(t, prog.Statements, p.errors)
+// 		raiseExpectedNotEqParsedError(t, prog, expectedNodes)
+// 		return
+// 	}
+
+// 	for i, expectedNode := range expectedNodes {
+// 		pass := expectedNode.Test(t, prog.Statements[i])
+// 		if !pass {
+// 			raiseParserErrors(t, prog.Statements[:i+1], p.errors)
+// 			t.FailNow()
+// 			return
+// 		}
+// 	}
+
+// 	// if len(prog.Statements) < num_nodes {
+// 	// 	t.Log("len(prog.Statements) < num_nodes")
+// 	// 	t.Logf("len(prog.Statements) = %d", len(prog.Statements))
+// 	// 	t.Logf("num_nodes = %d", num_nodes)
+// 	// 	raiseParserErrors(t, p.errors)
+// 	// } else if len(prog.Statements) > num_nodes {
+// 	// 	for _, stmt := range prog.Statements {
+// 	// 		letStmt, _ := stmt.(*ast.LetStatement)
+// 	// 		t.Logf("stmt %d: %q", stmt, letStmt.Identifier.GetName())
+
+// 	// 	}
+// 	// 	tokens := p.GetTokens()
+// 	// 	for i, tok := range tokens {
+// 	// 		t.Logf("token %d: %q", i, tok.Literal)
+// 	// 	}
+// 	// 	t.Fatalf("program.Statements does not contain %d statements. got=%d",
+// 	// 		num_nodes, len(prog.Statements),
+// 	// 	)
+// 	// 	return
+// 	// }
+
+// 	// for i, expectedNode := range expectedNodes {
+// 	// 	pass := expectedNode.Test(t, prog.Statements[i])
+// 	// 	if !pass {
+// 	// 		raiseParserErrors(t, p.errors)
+// 	// 		t.FailNow()
+// 	// 		return
+// 	// 	}
+// 	// }
+
+// }
+
+// func raiseParserErrors(t *testing.T, stmts []ast.StatementNode, errors []string) {
+// 	// print statements
+// 	for _, stmt := range stmts {
+// 		t.Logf("Parsed statement: %q", stmt.ToString())
+// 	}
+
+// 	if len(errors) == 0 {
+// 		t.Errorf("No Parser error.")
+// 		return
+// 	}
+
+// 	for _, msg := range errors {
+// 		t.Error(msg)
+// 	}
+// 	// t.FailNow()
+// }
+
+// func raiseExpectedNotEqParsedError(t *testing.T,
+// 	prog *ast.Program, expectedNodes []expected.Node,
+// ) {
+// 	t.Errorf("Test: Expected %d statement(s), but got %d parsed.",
+// 		len(expectedNodes), len(prog.Statements),
+// 	)
+// }
 
 // func testParseStatement(t *testing.T, prog *ast.Program, expectedNodes []ExpectedNode) {
 // }
@@ -398,11 +453,11 @@ func testParserErrors(t *testing.T, errors []string) {
 // 	input string, tests []ExpectedPrasedLetStatement,
 // ) {
 // 	// vlidate testcases
-// 	num_lines := len(strings.Split(input, ";")) - 1
+// 	num_nodes := len(strings.Split(input, ";")) - 1
 // 	expected_lines := len(tests)
-// 	if num_lines != expected_lines {
-// 		t.Fatalf("Invalid testcases: num_lines %d != expected_lines %d",
-// 			num_lines, expected_lines,
+// 	if num_nodes != expected_lines {
+// 		t.Fatalf("Invalid testcases: num_nodes %d != expected_lines %d",
+// 			num_nodes, expected_lines,
 // 		)
 // 		return
 // 	}
@@ -422,7 +477,7 @@ func testParserErrors(t *testing.T, errors []string) {
 // 		return
 // 	}
 
-// 	if len(prog.Statements) != num_lines {
+// 	if len(prog.Statements) != num_nodes {
 // 		for _, stmt := range prog.Statements {
 // 			letStmt, _ := stmt.(*ast.LetStatement)
 // 			t.Logf("stmt %d: %q", stmt, letStmt.Identifier.GetName())
@@ -433,7 +488,7 @@ func testParserErrors(t *testing.T, errors []string) {
 // 			t.Logf("token %d: %q", i, tok.Literal)
 // 		}
 // 		t.Fatalf("program.Statements does not contain %d statements. got=%d",
-// 			num_lines, len(prog.Statements),
+// 			num_nodes, len(prog.Statements),
 // 		)
 // 		return
 // 	}

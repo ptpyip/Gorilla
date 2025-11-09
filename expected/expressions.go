@@ -41,7 +41,7 @@ func (expected *BoolLiteral) Test(t *testing.T, node ast.Node) bool {
 		t.Errorf("boolLit.Value not %s. got=%s",
 			expected.getTokenLiteral(), boolLit.GetTokenLiteral(),
 		)
-		return !ok
+		return false
 	}
 	return ok
 }
@@ -99,9 +99,9 @@ func (expected *Identifier) getTokenLiteral() string {
 }
 
 func (expected *Identifier) Test(t *testing.T, node ast.Node) bool {
-	identifier, ok := node.(*ast.IdentifierNode)
+	identifier, ok := node.(*ast.IdentifierExpression)
 	if !ok {
-		t.Errorf("Expected IdentifierNode. got %T expression", node.GetTokenType())
+		t.Errorf("Expected IdentifierExpression. got %T expression", node.GetTokenType())
 		return false
 	}
 

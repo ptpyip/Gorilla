@@ -9,25 +9,25 @@ type Literal interface {
 	Node
 }
 
-type IdentifierNode struct {
+type IdentifierExpression struct {
 	Token token.Token
 	// Name  string
 }
 
-func (in *IdentifierNode) expressionNode() {}
+func (in *IdentifierExpression) expressionNode() {}
 
-func (in *IdentifierNode) GetTokenType() token.TokenType {
+func (in *IdentifierExpression) GetTokenType() token.TokenType {
 	return token.IDENT
 }
 
-func (in *IdentifierNode) GetTokenLiteral() string {
+func (in *IdentifierExpression) GetTokenLiteral() string {
 	return in.Token.Literal
 }
-func (in *IdentifierNode) GetName() string {
+func (in *IdentifierExpression) GetName() string {
 	return in.GetTokenLiteral()
 }
 
-func (in *IdentifierNode) ToString() string {
+func (in *IdentifierExpression) ToString() string {
 	return in.GetTokenLiteral()
 }
 

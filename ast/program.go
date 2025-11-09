@@ -19,7 +19,7 @@ func (prog *Program) GetTokenLiteral(idx int) string {
 
 type LetStatement struct {
 	// tok        token.Token
-	Identifier *IdentifierNode
+	Identifier *IdentifierExpression
 	Expression ExpressionNode
 }
 
@@ -31,6 +31,7 @@ func (letStmt *LetStatement) ToString() string {
 	out.WriteString(letStmt.Identifier.GetTokenLiteral())
 	out.WriteString(" = ")
 	out.WriteString(letStmt.Expression.ToString())
+	out.WriteString(";")
 	return out.String()
 }
 

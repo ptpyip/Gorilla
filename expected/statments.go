@@ -20,15 +20,17 @@ func (expected *LetStatement) getTokenLiteral() string {
 }
 
 func (expected *LetStatement) Test(t *testing.T, node ast.Node) bool {
+	pass := true
+
 	letStmt, ok := node.(*ast.LetStatement)
 	if !ok {
 		t.Errorf("Let statement not found. Got %q token", node.GetTokenType())
-		return false
+		return !pass
 	}
 
 	if letStmt.Identifier == nil {
 		t.Errorf("Invalid Let statement: Identifier is nil")
-		return false
+		return !pass
 	}
 
 	if letStmt.Identifier.GetName() != expected.Name {
@@ -36,12 +38,12 @@ func (expected *LetStatement) Test(t *testing.T, node ast.Node) bool {
 		t.Errorf("letStmt.Identifier.Value not %s. got=%s",
 			expected.Name, letStmt.Identifier.GetName(),
 		)
-		return false
+		return !pass
 	}
 
 	if letStmt.Expression == nil {
 		t.Errorf("Invalid Let statement: Expression is nil")
-		return false
+		return !pass
 	}
 
 	return expected.Expression.Test(t, letStmt.Expression)
@@ -91,31 +93,32 @@ func (expected *BlockStatement) getTokenLiteral() string {
 }
 
 func (expected *BlockStatement) Test(t *testing.T, node ast.Node) bool {
-	ok := true
+	pass := true
+
 	if node == nil {
 		t.Errorf("Expected Block statement but got nil")
-		return !ok
+		return !pass
 	}
 
 	blockStmt, ok := node.(*ast.BlockStatement)
 	if !ok {
 		t.Errorf("Block statement not found. Got %q token", node.GetTokenType())
-		return !ok
+		return !pass
 	}
 
 	if len(blockStmt.Statements) != len(expected.Statements) {
 		t.Errorf("Invalid Block statement: len(blockStmt.Statements) != len(expected.Statements)")
-		return !ok
+		return !pass
 	}
 
 	for i, expectedStmt := range expected.Statements {
 		pass := expectedStmt.Test(t, blockStmt.Statements[i])
 		if !pass {
 			t.Errorf("Block statement error")
-			return !ok
+			return !pass
 		}
 	}
-	return ok
+	return pass
 }
 
 type IfStatement struct {
@@ -133,27 +136,29 @@ func (expected *IfStatement) getTokenLiteral() string {
 }
 
 func (expected *IfStatement) Test(t *testing.T, node ast.Node) bool {
+	pass := true
+
 	ifStmt, ok := node.(*ast.IfStatement)
 	if !ok {
 		t.Errorf("If statement not found. Got %q token", node.GetTokenType())
-		return !ok
+		return !pass
 	}
 
 	if !expected.Condition.Test(t, ifStmt.Condition) {
 		t.Errorf("Invalid If statement: Incorrect condition")
-		return !ok
+		return !pass
 	}
 
 	if !expected.Statement.Test(t, ifStmt.Statement) {
 		t.Errorf("Invalid If statement: Incorrect statement")
-		return !ok
+		return !pass
 	}
 
 	if expected.Else != nil {
 		return expected.Else.Test(t, ifStmt.Else)
 	}
 
-	return ok
+	return pass
 }
 
 type ElseStatement struct {
@@ -169,25 +174,25 @@ func (expected *ElseStatement) getTokenLiteral() string {
 }
 
 func (expected *ElseStatement) Test(t *testing.T, node ast.Node) bool {
-	ok := true
+	pass := true
 
 	if node == nil {
 		t.Errorf("Expected Else statement but got nil")
-		return !ok
+		return !pass
 	}
 
 	elseStmt, ok := node.(*ast.ElseStatement)
 	if !ok {
 		t.Errorf("Else statement not found. Got %q token", node.GetTokenType())
-		return !ok
+		return !pass
 	}
 
 	if !expected.Statement.Test(t, elseStmt.Statement) {
 		t.Errorf("Invalid Else statement: Incorrect statement")
-		return !ok
+		return !pass
 	}
 
-	return ok
+	return pass
 }
 
 func NewElseIfStatement(condition ExpressionNode, stmt StatementNode, elseNode *ElseStatement) *ElseStatement {

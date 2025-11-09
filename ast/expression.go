@@ -87,3 +87,11 @@ func (intLit *IntegerLiteral) GetValue() int64 {
 func (intLit *IntegerLiteral) ToString() string {
 	return intLit.GetTokenLiteral()
 }
+
+// func NewIfElseExpression(
+// 	condition ExpressionNode,
+// 	ifBlock ExpressionNode,
+// 	elseBlock ExpressionNode,
+// ) *Trinary {
+// 	return &Trinary{condition, ifBlock, elseBlock}
+// }

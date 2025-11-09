@@ -5,6 +5,7 @@ import "gorilla/token"
 const (
 	_ int = iota
 	LOWEST
+	// TRINARY
 	EQUALS  // ==
 	COMPARE // > or <
 	SUM     // +
@@ -14,6 +15,8 @@ const (
 )
 
 var Precedence = map[token.TokenType]int{
+	// token.IF:       TRINARY,
+	// token.ELSE:     TRINARY,
 	token.EQ:       EQUALS,
 	token.NOT_EQ:   EQUALS,
 	token.LE:       EQUALS,

@@ -259,6 +259,14 @@ func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool
 		}
 	}
 
+	if p.nextToken.Type == token.IF {
+		expr = p.parseIfElseExpression(expr)
+		if expr == nil {
+			p.raiseError("Could not parse if-else expression")
+			return nil, false
+		}
+	}
+
 	return expr, true
 }
 
@@ -391,6 +399,9 @@ func (p *Parser) parseInfix(left ast.ExpressionNode) ast.ExpressionNode {
 			return nil
 		}
 
+	case token.IF:
+		right, ok = p.parseExpression(precedence)
+
 	default:
 		p.raiseError("Unexpected Infix operator " + string(operator.Type))
 		return nil
@@ -402,6 +413,41 @@ func (p *Parser) parseInfix(left ast.ExpressionNode) ast.ExpressionNode {
 	}
 
 	return &ast.Infix{operator, left, right}
+}
+
+func (p *Parser) parseIfElseExpression(left ast.ExpressionNode) *ast.Trinary {
+	if left == nil {
+		p.raiseError("Left operand is nil")
+		return nil
+	}
+	p.loadNextToken()
+
+	if p.currentToken.Type != token.IF {
+		p.raiseTokenError(token.IF)
+		return nil
+	}
+	p.loadNextToken()
+
+	condition, ok := p.parseExpression(precedences.LOWEST)
+	if !ok {
+		p.raiseError("Could not parse if expression")
+		return nil
+	}
+	p.loadNextToken()
+
+	if p.currentToken.Type != token.ELSE {
+		p.raiseTokenError(token.ELSE)
+	}
+	p.loadNextToken()
+
+	right, ok := p.parseExpression(precedences.LOWEST)
+	if !ok {
+		p.raiseError("Could not parse else expression")
+		return nil
+	}
+
+	return &ast.Trinary{left, condition, right}
+
 }
 
 func (p *Parser) skipToSemicolon() {

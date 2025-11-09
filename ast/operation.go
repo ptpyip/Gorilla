@@ -111,13 +111,13 @@ func (trinary *Trinary) GetOperands() []ExpressionNode {
 func (trinary *Trinary) ToString() string {
 	var out bytes.Buffer
 
-	out.WriteString("(")
+	// out.WriteString("(")
 	out.WriteString(trinary.Left.ToString())
 	out.WriteString(" if ")
 	out.WriteString(trinary.Middle.ToString())
 	out.WriteString(" else ")
 	out.WriteString(trinary.Right.ToString())
-	out.WriteString(")")
+	// out.WriteString(")")
 
 	return out.String()
 }

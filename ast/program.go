@@ -61,6 +61,7 @@ func (returnStmt *ReturnStatement) ToString() string {
 	var out bytes.Buffer
 	out.WriteString("return ")
 	out.WriteString(returnStmt.ReturnValue.ToString())
+	out.WriteString(";")
 	return out.String()
 }
 

@@ -262,9 +262,60 @@ func TestIfELseExpressions(t *testing.T) {
 	testParseProgram(t, `
 	let x = True;
 	return 1 if x else 2;
+	if (x == y) { 
+		return 1 if x else 2;
+	} else {
+	 	{ let y = 1 if x else 2; }
+		return 1 if y else 2;
+	}
+		
 	`, []expected.Node{
-		&expected.SkipNode{},
-		&expected.SkipNode{},
+		&expected.LetStatement{"x",
+			expected.NewBoolLiteral(true),
+		},
+		&expected.ReturnStatement{
+			&expected.Trinary{
+				expected.NewIntegerLiteral(1),
+				&expected.Identifier{Name: "x"},
+				expected.NewIntegerLiteral(2),
+			},
+		},
+		&expected.IfStatement{
+			&expected.Infix{
+				token.EQ,
+				&expected.Identifier{Name: "x"},
+				&expected.Identifier{Name: "y"},
+			},
+			expected.NewBlockStatement(
+				&expected.ReturnStatement{
+					&expected.Trinary{
+						expected.NewIntegerLiteral(1),
+						&expected.Identifier{Name: "x"},
+						expected.NewIntegerLiteral(2),
+					},
+				},
+			),
+			&expected.ElseStatement{
+				expected.NewBlockStatement(
+					expected.NewBlockStatement(
+						&expected.LetStatement{"y",
+							&expected.Trinary{
+								expected.NewIntegerLiteral(1),
+								&expected.Identifier{Name: "x"},
+								expected.NewIntegerLiteral(2),
+							},
+						},
+					),
+					&expected.ReturnStatement{
+						&expected.Trinary{
+							expected.NewIntegerLiteral(1),
+							&expected.Identifier{Name: "y"},
+							expected.NewIntegerLiteral(2),
+						},
+					},
+				),
+			},
+		},
 	})
 }
 

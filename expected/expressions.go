@@ -197,3 +197,51 @@ func (expected *Infix) Test(t *testing.T, node ast.Node) bool {
 
 	return expected.Left.Test(t, inFix.Left) && expected.Right.Test(t, inFix.Right)
 }
+
+type Trinary struct {
+	Left   ExpressionNode
+	Middle ExpressionNode
+	Right  ExpressionNode
+}
+
+func (expected *Trinary) getTokenType() token.TokenType {
+	return token.IF
+}
+
+func (expected *Trinary) getTokenLiteral() string {
+	return ""
+}
+
+func (expected *Trinary) Test(t *testing.T, node ast.Node) bool {
+	pass := true
+	if node == nil {
+		t.Errorf("Expected Trinary Expression. got nil")
+		return !pass
+	}
+	trinary, ok := node.(*ast.Trinary)
+	if !ok {
+		t.Errorf("Expected Trinary Expression. got %s expression", node.ToString())
+		return !pass
+	}
+	if trinary.GetTokenType() != expected.getTokenType() {
+		t.Errorf("Expected trinary.TokenType = %s. got = %s",
+			expected.getTokenLiteral(), trinary.GetTokenType(),
+		)
+		return !pass
+	}
+
+	if trinary.Left == nil {
+		t.Errorf("Invalid Trinary satement: Left expression is nil")
+		return !pass
+	} else if trinary.Middle == nil {
+		t.Errorf("Invalid Trinary satement: Middle expression is nil")
+		return !pass
+	} else if trinary.Right == nil {
+		t.Errorf("Invalid Trinary satement: Right expression is nil")
+		return !pass
+	}
+
+	return (expected.Left.Test(t, trinary.Left) &&
+		expected.Middle.Test(t, trinary.Middle) &&
+		expected.Right.Test(t, trinary.Right))
+}

@@ -85,7 +85,7 @@ func NewBlockStatement(statements ...StatementNode) *BlockStatement {
 }
 
 func (expected *BlockStatement) getTokenType() token.TokenType {
-	return token.LBRACE
+	return token.LPAREN
 }
 
 func (expected *BlockStatement) getTokenLiteral() string {

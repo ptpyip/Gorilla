@@ -72,7 +72,7 @@ type BlockStatement struct {
 func (blockStmt *BlockStatement) statementNode() {}
 
 func (blockStmt *BlockStatement) GetTokenType() token.TokenType {
-	return token.LBRACKET
+	return token.LBRACE
 }
 
 func (blockStmt *BlockStatement) GetTokenLiteral() string {

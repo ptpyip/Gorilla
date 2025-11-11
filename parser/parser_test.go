@@ -258,7 +258,7 @@ func TestIfElseStatements(t *testing.T) {
 	})
 }
 
-func TestIfELseExpressions(t *testing.T) {
+func TestIfElseExpressions(t *testing.T) {
 	testParseProgram(t, `
 	let x = True;
 	return 1 if x else 2;
@@ -317,6 +317,7 @@ func TestIfELseExpressions(t *testing.T) {
 			},
 		},
 	})
+
 }
 
 func TestParser(t *testing.T) {

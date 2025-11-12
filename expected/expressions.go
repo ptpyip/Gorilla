@@ -114,6 +114,55 @@ func (expected *Identifier) Test(t *testing.T, node ast.Node) bool {
 	return true
 }
 
+type FunctionDefinition struct {
+	Signiture []Identifier
+	Body      *BlockStatement
+}
+
+func (expected *FunctionDefinition) getTokenType() token.TokenType {
+	return token.FUNCTION
+}
+
+func (expected *FunctionDefinition) getTokenLiteral() string {
+	return "fn"
+}
+
+func (expected *FunctionDefinition) Test(t *testing.T, node ast.Node) bool {
+	pass := true
+
+	if node == nil {
+		t.Errorf("Expected FunctionDefinition. got nil")
+		return !pass
+	}
+
+	fnDef, ok := node.(*ast.FunctionDefinition)
+	if !ok {
+		t.Errorf("FunctionDefinition not found. Got %q token", node.GetTokenType())
+		return !pass
+	}
+
+	if len(fnDef.Signiture) != len(expected.Signiture) {
+		t.Errorf("Invalid FunctionDefinition: len(fnDef.Signiture) != len(expected.Signiture)")
+		return !pass
+	}
+
+	for i, expectedParam := range expected.Signiture {
+		if expectedParam.Test(t, &fnDef.Signiture[i]) == !pass {
+			t.Errorf("FunctionDefinition error")
+			return !pass
+		}
+	}
+	if fnDef.Body == nil {
+		t.Errorf("Invalid FunctionDefinition: fnDef.Body is nil")
+		return !pass
+	} else if expected.Body == nil {
+		t.Errorf("Invalid FunctionDefinition: expected.Body is nil")
+		return !pass
+	}
+
+	return expected.Body.Test(t, fnDef.Body)
+}
+
 type Prefix struct {
 	OperatorType token.TokenType
 	Operand      ExpressionNode

@@ -325,27 +325,66 @@ func TestFunctionDeclarations(t *testing.T) {
 		let add = fn(x, y) {
 			return x + y;
 		};
+		return fn() {};
+		let foo = fn(x) {
+			return -x;
+		} if !y else fn() {};
 	`, []expected.Node{
 		&expected.LetStatement{"add",
-			&expected.SkipNode{},
-			// &expected.FunctionDeclaration{
-			// 	Name: "add",
-			// 	Parameters: []expected.Node{
-			// 		&expected.Identifier{Name: "x"},
-			// 		&expected.Identifier{Name: "y"},
-			// 	},
-			// 	Body: &expected.BlockStatement{
-			// 		Statements: []expected.Node{
-			// 			&expected.ReturnStatement{
-			// 				&expected.Infix{
-			// 					token.PLUS,
-			// 					&expected.Identifier{Name: "x"},
-			// 					&expected.Identifier{Name: "y"},
-			// 				},
-			// 			},
-			// 		}},
-			// },
+			// &expected.SkipNode{},
+			&expected.FunctionDefinition{
+				Signiture: []expected.Identifier{
+					{"x"}, {"y"},
+				},
+				Body: &expected.BlockStatement{[]expected.StatementNode{
+					&expected.ReturnStatement{
+						&expected.Infix{
+							token.PLUS,
+							&expected.Identifier{Name: "x"},
+							&expected.Identifier{Name: "y"},
+						},
+					},
+				}},
+			},
 		},
+		&expected.ReturnStatement{
+			&expected.FunctionDefinition{
+				Signiture: []expected.Identifier{},
+				Body: &expected.BlockStatement{
+					[]expected.StatementNode{},
+				},
+			},
+		},
+		&expected.LetStatement{"foo",
+			&expected.Trinary{
+				&expected.FunctionDefinition{
+					Signiture: []expected.Identifier{
+						{"x"},
+					},
+					Body: &expected.BlockStatement{
+						[]expected.StatementNode{
+							&expected.ReturnStatement{
+								&expected.Prefix{
+									token.MINUS,
+									&expected.Identifier{Name: "x"},
+								},
+							},
+						}},
+				},
+				&expected.Prefix{
+					token.BANG,
+					&expected.Identifier{Name: "y"},
+				},
+				&expected.FunctionDefinition{
+					Signiture: []expected.Identifier{},
+					Body: &expected.BlockStatement{
+						[]expected.StatementNode{},
+					},
+				},
+			},
+		},
+
+		// },
 	})
 }
 

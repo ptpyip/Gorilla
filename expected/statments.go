@@ -112,8 +112,7 @@ func (expected *BlockStatement) Test(t *testing.T, node ast.Node) bool {
 	}
 
 	for i, expectedStmt := range expected.Statements {
-		pass := expectedStmt.Test(t, blockStmt.Statements[i])
-		if !pass {
+		if expectedStmt.Test(t, blockStmt.Statements[i]) == !pass {
 			t.Errorf("Block statement error")
 			return !pass
 		}

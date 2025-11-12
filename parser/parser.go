@@ -49,3 +49,9 @@ func (p *Parser) reset() {
 	p.loadNextToken()
 	p.loadNextToken()
 }
+
+func (p *Parser) skipToSemicolon() {
+	for p.currentToken.Type != token.SEMICOLON {
+		p.loadNextToken()
+	}
+}

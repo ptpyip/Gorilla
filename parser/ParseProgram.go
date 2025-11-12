@@ -106,6 +106,7 @@ func (p *Parser) parseStatement() ast.StatementNode {
 			p.raiseError("Could not parse if statement")
 			return nil
 		}
+		p.loadNextToken()
 		return stmt
 
 	case token.LBRACE:
@@ -114,6 +115,7 @@ func (p *Parser) parseStatement() ast.StatementNode {
 			p.raiseError("Could not parse block statement")
 			return nil
 		}
+		p.loadNextToken()
 		return block
 
 	// === Edge cases === //
@@ -157,7 +159,7 @@ func (p *Parser) parseBlockStatement() (*ast.BlockStatement, bool) {
 			p.loadNextToken()
 		}
 	}
-	p.loadNextToken() // load token after '}'
+	// p.loadNextToken() // load token after '}'
 	// println("Finsh parsing block statement: with ", len(block.Statements), " statements")
 
 	return block, true
@@ -182,6 +184,7 @@ func (p *Parser) parseIfElseStatement() (ast.StatementNode, bool) {
 		p.raiseError("Could not parse block statement")
 		return nil, false
 	}
+	p.loadNextToken()
 
 	if p.currentToken.Type != token.ELSE {
 		return ast.NewIfStatement(condition, block), true

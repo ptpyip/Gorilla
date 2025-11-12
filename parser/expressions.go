@@ -50,17 +50,18 @@ func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool
 			// 	p.loadNextToken()
 			// }
 		}
+		p.loadNextToken()
 
 		body, ok := p.parseBlockStatement()
 		if !ok {
-			p.raiseError("Could not parse block statement")
+			p.raiseError("Could not parse Function body")
 			return nil, false
 		} else if body == nil {
 			p.raiseError("Invalid function definition: body is nil")
 			return nil, false
 		}
 
-		// print("After parsing body: ", p.currentToken.Literal) // epxected to be after '}
+		// println("After parsing body: ", p.currentToken.Literal) // epxected to be after '}
 		expr = &ast.FunctionDefinition{signiture, body}
 
 	case token.LPAREN, token.BANG, token.MINUS:

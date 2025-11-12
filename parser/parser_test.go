@@ -320,6 +320,35 @@ func TestIfElseExpressions(t *testing.T) {
 
 }
 
+func TestFunctionDeclarations(t *testing.T) {
+	testParseProgram(t, `
+		let add = fn(x, y) {
+			return x + y;
+		};
+	`, []expected.Node{
+		&expected.LetStatement{"add",
+			&expected.SkipNode{},
+			// &expected.FunctionDeclaration{
+			// 	Name: "add",
+			// 	Parameters: []expected.Node{
+			// 		&expected.Identifier{Name: "x"},
+			// 		&expected.Identifier{Name: "y"},
+			// 	},
+			// 	Body: &expected.BlockStatement{
+			// 		Statements: []expected.Node{
+			// 			&expected.ReturnStatement{
+			// 				&expected.Infix{
+			// 					token.PLUS,
+			// 					&expected.Identifier{Name: "x"},
+			// 					&expected.Identifier{Name: "y"},
+			// 				},
+			// 			},
+			// 		}},
+			// },
+		},
+	})
+}
+
 func TestParser(t *testing.T) {
 
 	testParseProgram(t, `

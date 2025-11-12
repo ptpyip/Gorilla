@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"bytes"
 	"gorilla/token"
 	"strconv"
 )
@@ -95,3 +96,42 @@ func (intLit *IntegerLiteral) ToString() string {
 // ) *Trinary {
 // 	return &Trinary{condition, ifBlock, elseBlock}
 // }
+
+type FunctionDefinition struct {
+	Signiture []IdentifierExpression
+	Body      *BlockStatement
+}
+
+func (f *FunctionDefinition) expressionNode() {}
+
+func (f *FunctionDefinition) GetTokenType() token.TokenType {
+	return token.FUNCTION
+}
+
+func (f *FunctionDefinition) GetTokenLiteral() string {
+	return "fn"
+}
+
+func (f *FunctionDefinition) ToString() string {
+	var out bytes.Buffer
+	out.WriteString("fn ")
+	out.WriteString("(")
+	for i, param := range f.Signiture {
+		out.WriteString(param.GetTokenLiteral())
+		if i < len(f.Signiture)-1 {
+			out.WriteString(", ")
+		}
+	}
+	out.WriteString(")")
+
+	out.WriteString(" ")
+
+	if f.Body != nil {
+		out.WriteString(f.Body.ToString())
+	} else {
+		println("Warning: FunctionDefinition.Body is nil")
+		out.WriteString("{}")
+	}
+
+	return out.String()
+}

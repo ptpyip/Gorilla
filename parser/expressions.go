@@ -23,6 +23,46 @@ func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool
 		}
 		expr = intLit
 
+	case token.FUNCTION:
+		// fn_definition
+		if p.nextToken.Type != token.LPAREN {
+			p.raiseNextTokenError(token.LPAREN)
+			return nil, false
+		}
+		p.loadNextToken()
+
+		signiture := []ast.IdentifierExpression{}
+		if p.nextToken.Type == token.RPAREN {
+			p.loadNextToken()
+		} // skip for fn(), ie empty signature
+
+		for p.currentToken.Type != token.RPAREN {
+			if p.nextToken.Type != token.IDENT {
+				p.raiseNextTokenError(token.IDENT)
+				return nil, false
+			}
+			p.loadNextToken()
+
+			signiture = append(signiture, ast.IdentifierExpression{p.currentToken})
+			p.loadNextToken()
+
+			// if p.currentToken.Type == token.COMMA {
+			// 	p.loadNextToken()
+			// }
+		}
+
+		body, ok := p.parseBlockStatement()
+		if !ok {
+			p.raiseError("Could not parse block statement")
+			return nil, false
+		} else if body == nil {
+			p.raiseError("Invalid function definition: body is nil")
+			return nil, false
+		}
+
+		// print("After parsing body: ", p.currentToken.Literal) // epxected to be after '}
+		expr = &ast.FunctionDefinition{signiture, body}
+
 	case token.LPAREN, token.BANG, token.MINUS:
 		prefix, ok := p.parsePrefix()
 		if !ok {

@@ -97,22 +97,22 @@ func (intLit *IntegerLiteral) ToString() string {
 // 	return &Trinary{condition, ifBlock, elseBlock}
 // }
 
-type FunctionDefinition struct {
+type FunctionLiteral struct {
 	Signiture []IdentifierExpression
 	Body      *BlockStatement
 }
 
-func (f *FunctionDefinition) expressionNode() {}
+func (f *FunctionLiteral) expressionNode() {}
 
-func (f *FunctionDefinition) GetTokenType() token.TokenType {
+func (f *FunctionLiteral) GetTokenType() token.TokenType {
 	return token.FUNCTION
 }
 
-func (f *FunctionDefinition) GetTokenLiteral() string {
+func (f *FunctionLiteral) GetTokenLiteral() string {
 	return "fn"
 }
 
-func (f *FunctionDefinition) ToString() string {
+func (f *FunctionLiteral) ToString() string {
 	var out bytes.Buffer
 	out.WriteString("fn ")
 	out.WriteString("(")
@@ -129,9 +129,39 @@ func (f *FunctionDefinition) ToString() string {
 	if f.Body != nil {
 		out.WriteString(f.Body.ToString())
 	} else {
-		println("Warning: FunctionDefinition.Body is nil")
+		println("Warning: FunctionLiteral.Body is nil")
 		out.WriteString("{}")
 	}
+
+	return out.String()
+}
+
+type FunctionCall struct {
+	FunctionName IdentifierExpression
+	Arguments    []ExpressionNode
+}
+
+func (f *FunctionCall) expressionNode() {}
+
+func (f *FunctionCall) GetTokenType() token.TokenType {
+	return token.IDENT
+}
+
+func (f *FunctionCall) GetTokenLiteral() string {
+	return f.FunctionName.GetTokenLiteral()
+}
+
+func (f *FunctionCall) ToString() string {
+	var out bytes.Buffer
+	out.WriteString(f.FunctionName.GetTokenLiteral())
+	out.WriteString("(")
+	for i, arg := range f.Arguments {
+		out.WriteString(arg.ToString())
+		if i < len(f.Arguments)-1 {
+			out.WriteString(", ")
+		}
+	}
+	out.WriteString(")")
 
 	return out.String()
 }

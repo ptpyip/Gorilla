@@ -332,7 +332,7 @@ func TestFunctionDeclarations(t *testing.T) {
 	`, []expected.Node{
 		&expected.LetStatement{"add",
 			// &expected.SkipNode{},
-			&expected.FunctionDefinition{
+			&expected.FunctionLiteral{
 				Signiture: []expected.Identifier{
 					{"x"}, {"y"},
 				},
@@ -348,7 +348,7 @@ func TestFunctionDeclarations(t *testing.T) {
 			},
 		},
 		&expected.ReturnStatement{
-			&expected.FunctionDefinition{
+			&expected.FunctionLiteral{
 				Signiture: []expected.Identifier{},
 				Body: &expected.BlockStatement{
 					[]expected.StatementNode{},
@@ -357,7 +357,7 @@ func TestFunctionDeclarations(t *testing.T) {
 		},
 		&expected.LetStatement{"foo",
 			&expected.Trinary{
-				&expected.FunctionDefinition{
+				&expected.FunctionLiteral{
 					Signiture: []expected.Identifier{
 						{"x"},
 					},
@@ -375,7 +375,7 @@ func TestFunctionDeclarations(t *testing.T) {
 					token.BANG,
 					&expected.Identifier{Name: "y"},
 				},
-				&expected.FunctionDefinition{
+				&expected.FunctionLiteral{
 					Signiture: []expected.Identifier{},
 					Body: &expected.BlockStatement{
 						[]expected.StatementNode{},
@@ -386,6 +386,41 @@ func TestFunctionDeclarations(t *testing.T) {
 
 		// },
 	})
+}
+
+func TestFunctionCalls(t *testing.T) {
+	testParseProgram(t, `
+		let add = fn(a, b) {
+			return a + b;
+		};
+		return add(5, 5);
+	`, []expected.Node{
+		&expected.LetStatement{"add",
+			&expected.FunctionLiteral{
+				Signiture: []expected.Identifier{
+					{"a"}, {"b"},
+				},
+				Body: expected.NewBlockStatement(
+					&expected.ReturnStatement{
+						&expected.Infix{
+							token.PLUS,
+							&expected.Identifier{Name: "a"},
+							&expected.Identifier{Name: "b"},
+						},
+					},
+				),
+			},
+		},
+		&expected.ReturnStatement{
+			&expected.FunctionCall{
+				expected.Identifier{"add"},
+				[]expected.ExpressionNode{
+					expected.NewIntegerLiteral(5),
+					expected.NewIntegerLiteral(5),
+				}},
+		},
+	},
+	)
 }
 
 func TestParser(t *testing.T) {

@@ -11,6 +11,9 @@ func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool
 	switch p.currentToken.Type {
 	case token.IDENT:
 		expr = &ast.IdentifierExpression{p.currentToken}
+		if p.nextToken.Type == token.LPAREN {
+			expr = p.parseFunctionCall(expr)
+		}
 
 	case token.TRUE, token.FALSE:
 		expr = &ast.BoolLiteral{p.currentToken}
@@ -62,7 +65,7 @@ func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool
 		}
 
 		// println("After parsing body: ", p.currentToken.Literal) // epxected to be after '}
-		expr = &ast.FunctionDefinition{signiture, body}
+		expr = &ast.FunctionLiteral{signiture, body}
 
 	case token.LPAREN, token.BANG, token.MINUS:
 		prefix, ok := p.parsePrefix()
@@ -287,6 +290,39 @@ func (p *Parser) parseIfElseExpression(left ast.ExpressionNode) (*ast.Trinary, b
 
 	return &ast.Trinary{left, condition, right}, ok
 
+}
+
+func (p *Parser) parseFunctionCall(expr ast.ExpressionNode) *ast.FunctionCall {
+	functionIdentifier, ok := expr.(*ast.IdentifierExpression)
+	if !ok {
+		p.raiseError("ParseFunctionCall: expected Identifeier")
+		return nil
+	}
+	p.loadNextToken()
+
+	if p.currentToken.Type != token.LPAREN {
+		p.raiseTokenError(token.LPAREN)
+	}
+	p.loadNextToken()
+
+	// function call
+	arguments := []ast.ExpressionNode{}
+	for p.currentToken.Type != token.RPAREN {
+		arg, ok := p.parseExpression(precedences.CALL)
+		if !ok {
+			p.raiseError("Could not parse function call argument")
+			return nil
+		}
+		arguments = append(arguments, arg)
+		p.loadNextToken()
+
+		if p.currentToken.Type == token.COMMA {
+			p.loadNextToken()
+		}
+	}
+	// p.loadNextToken()
+
+	return &ast.FunctionCall{*functionIdentifier, arguments}
 }
 
 func (p *Parser) getCurrentPrecedence() int {

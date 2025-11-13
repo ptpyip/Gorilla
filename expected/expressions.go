@@ -114,53 +114,100 @@ func (expected *Identifier) Test(t *testing.T, node ast.Node) bool {
 	return true
 }
 
-type FunctionDefinition struct {
+type FunctionLiteral struct {
 	Signiture []Identifier
 	Body      *BlockStatement
 }
 
-func (expected *FunctionDefinition) getTokenType() token.TokenType {
+func (expected *FunctionLiteral) getTokenType() token.TokenType {
 	return token.FUNCTION
 }
 
-func (expected *FunctionDefinition) getTokenLiteral() string {
+func (expected *FunctionLiteral) getTokenLiteral() string {
 	return "fn"
 }
 
-func (expected *FunctionDefinition) Test(t *testing.T, node ast.Node) bool {
+func (expected *FunctionLiteral) Test(t *testing.T, node ast.Node) bool {
 	pass := true
 
 	if node == nil {
-		t.Errorf("Expected FunctionDefinition. got nil")
+		t.Errorf("Expected FunctionLiteral. got nil")
 		return !pass
 	}
 
-	fnDef, ok := node.(*ast.FunctionDefinition)
+	fnDef, ok := node.(*ast.FunctionLiteral)
 	if !ok {
-		t.Errorf("FunctionDefinition not found. Got %q token", node.GetTokenType())
+		t.Errorf("FunctionLiteral not found. Got %q token", node.GetTokenType())
 		return !pass
 	}
 
 	if len(fnDef.Signiture) != len(expected.Signiture) {
-		t.Errorf("Invalid FunctionDefinition: len(fnDef.Signiture) != len(expected.Signiture)")
+		t.Errorf("Invalid FunctionLiteral: len(fnDef.Signiture) != len(expected.Signiture)")
 		return !pass
 	}
 
 	for i, expectedParam := range expected.Signiture {
 		if expectedParam.Test(t, &fnDef.Signiture[i]) == !pass {
-			t.Errorf("FunctionDefinition error")
+			t.Errorf("FunctionLiteral error")
 			return !pass
 		}
 	}
 	if fnDef.Body == nil {
-		t.Errorf("Invalid FunctionDefinition: fnDef.Body is nil")
+		t.Errorf("Invalid FunctionLiteral: fnDef.Body is nil")
 		return !pass
 	} else if expected.Body == nil {
-		t.Errorf("Invalid FunctionDefinition: expected.Body is nil")
+		t.Errorf("Invalid FunctionLiteral: expected.Body is nil")
 		return !pass
 	}
 
 	return expected.Body.Test(t, fnDef.Body)
+}
+
+type FunctionCall struct {
+	FunctionName Identifier
+	Arguments    []ExpressionNode
+}
+
+func (expected *FunctionCall) getTokenType() token.TokenType {
+	return token.IDENT
+}
+
+func (expected *FunctionCall) getTokenLiteral() string {
+	return expected.FunctionName.Name
+}
+
+func (expected *FunctionCall) Test(t *testing.T, node ast.Node) bool {
+	pass := true
+	if node == nil {
+		t.Errorf("Expected FunctionCall. got nil")
+		return !pass
+	}
+
+	fnCall, ok := node.(*ast.FunctionCall)
+	if !ok {
+		t.Errorf("Expected FunctionCall. got %T expression", node.GetTokenType())
+		return !pass
+	}
+
+	if expected.FunctionName.Test(t, &fnCall.FunctionName) == !pass {
+		t.Errorf("Incorrect Function Name:" + fnCall.FunctionName.ToString())
+		return !pass
+	}
+
+	if len(fnCall.Arguments) != len(expected.Arguments) {
+		t.Errorf("Invalid FunctionCall: Epxected %d arguments. got %d",
+			len(expected.Arguments), len(fnCall.Arguments),
+		)
+		return !pass
+	}
+
+	for i, arg := range expected.Arguments {
+		if arg.Test(t, fnCall.Arguments[i]) == !pass {
+			t.Errorf("Incorrect argument %d", i)
+			return !pass
+		}
+	}
+	return pass
 }
 
 type Prefix struct {

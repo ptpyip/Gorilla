@@ -147,7 +147,7 @@ func (expected *FunctionLiteral) Test(t *testing.T, node ast.Node) bool {
 	}
 
 	for i, expectedParam := range expected.Signiture {
-		if expectedParam.Test(t, &fnDef.Signiture[i]) == !pass {
+		if expectedParam.Test(t, fnDef.Signiture[i]) == !pass {
 			t.Errorf("FunctionLiteral error")
 			return !pass
 		}

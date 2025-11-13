@@ -98,7 +98,7 @@ func (intLit *IntegerLiteral) ToString() string {
 // }
 
 type FunctionLiteral struct {
-	Signiture []IdentifierExpression
+	Signiture []*IdentifierExpression
 	Body      *BlockStatement
 }
 

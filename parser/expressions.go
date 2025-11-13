@@ -34,7 +34,7 @@ func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool
 		}
 		p.loadNextToken()
 
-		signiture := []ast.IdentifierExpression{}
+		signiture := []*ast.IdentifierExpression{} // faster append
 		if p.nextToken.Type == token.RPAREN {
 			p.loadNextToken()
 		} // skip for fn(), ie empty signature
@@ -46,7 +46,7 @@ func (p *Parser) parseExpression(parentPrecedence int) (ast.ExpressionNode, bool
 			}
 			p.loadNextToken()
 
-			signiture = append(signiture, ast.IdentifierExpression{p.currentToken})
+			signiture = append(signiture, &ast.IdentifierExpression{p.currentToken})
 			p.loadNextToken()
 
 			// if p.currentToken.Type == token.COMMA {

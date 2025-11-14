@@ -11,11 +11,11 @@ type Parser struct {
 	currentToken token.Token
 	nextToken    token.Token
 
-	errors []string
+	Errors []string
 }
 
 func NewParser(lx *lexer.Lexer) *Parser {
-	p := &Parser{lx: lx, errors: []string{}}
+	p := &Parser{lx: lx, Errors: []string{}}
 	// read two tokens, so currentToken and nextToken are both set
 	p.loadNextToken()
 	p.loadNextToken()
@@ -44,7 +44,7 @@ func (p *Parser) GetTokens() []token.Token {
 
 func (p *Parser) reset() {
 	p.lx = p.lx.Copy() // Reset lexer to initial state
-	// p.errors = []string{}
+	// p.Errors = []string{}
 
 	p.loadNextToken()
 	p.loadNextToken()

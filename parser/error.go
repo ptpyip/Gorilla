@@ -9,11 +9,11 @@ import (
 
 func (p *Parser) raiseErrorAndPanic(msg string) {
 	p.raiseError(msg)
-	panic(p.errors)
+	panic(p.Errors)
 }
 
 func (p *Parser) raiseError(msg string) {
-	p.errors = append(p.errors, "Parser error: "+msg)
+	p.Errors = append(p.Errors, "Parser error: "+msg)
 }
 
 func (p *Parser) raiseParseProgramError() {

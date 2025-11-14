@@ -442,14 +442,14 @@ func testParseProgram(t *testing.T,
 
 	prog, ok := p.ParseProgram()
 	if !ok {
-		raiseParserErrors(t, prog.Statements, p.errors)
+		raiseParserErrors(t, prog.Statements, p.Errors)
 		return
 	}
 
 	// test program statements
 	num_nodes := len(expectedNodes)
 	if len(prog.Statements) != num_nodes {
-		raiseParserErrors(t, prog.Statements, p.errors)
+		raiseParserErrors(t, prog.Statements, p.Errors)
 		raiseExpectedNotEqParsedError(t, prog, expectedNodes)
 		return
 	}
@@ -457,7 +457,7 @@ func testParseProgram(t *testing.T,
 	for i, expectedNode := range expectedNodes {
 		pass := expectedNode.Test(t, prog.Statements[i])
 		if !pass {
-			raiseParserErrors(t, prog.Statements[:i+1], p.errors)
+			raiseParserErrors(t, prog.Statements[:i+1], p.Errors)
 			// t.FailNow()
 			return
 		}
@@ -503,21 +503,21 @@ func raiseExpectedNotEqParsedError(t *testing.T,
 // 		// for i, tok := range tokens {
 // 		// 	t.Logf("token %d: %q", i, tok.Literal)
 
-// 		raiseParserErrors(t, prog.Statements, p.errors)
+// 		raiseParserErrors(t, prog.Statements, p.Errors)
 // 		return
 
 // 	}
 
 // 	// if prog == nil {
 // 	// 	t.Error("ParseProgram() returned nil")
-// 	// 	raiseParserErrors(t, prog.Statements, p.errors)
+// 	// 	raiseParserErrors(t, prog.Statements, p.Errors)
 // 	// 	return
 // 	// }
 
 // 	// test program statements
 // 	num_nodes := len(expectedNodes)
 // 	if len(prog.Statements) != num_nodes {
-// 		raiseParserErrors(t, prog.Statements, p.errors)
+// 		raiseParserErrors(t, prog.Statements, p.Errors)
 // 		raiseExpectedNotEqParsedError(t, prog, expectedNodes)
 // 		return
 // 	}
@@ -525,7 +525,7 @@ func raiseExpectedNotEqParsedError(t *testing.T,
 // 	for i, expectedNode := range expectedNodes {
 // 		pass := expectedNode.Test(t, prog.Statements[i])
 // 		if !pass {
-// 			raiseParserErrors(t, prog.Statements[:i+1], p.errors)
+// 			raiseParserErrors(t, prog.Statements[:i+1], p.Errors)
 // 			t.FailNow()
 // 			return
 // 		}
@@ -535,7 +535,7 @@ func raiseExpectedNotEqParsedError(t *testing.T,
 // 	// 	t.Log("len(prog.Statements) < num_nodes")
 // 	// 	t.Logf("len(prog.Statements) = %d", len(prog.Statements))
 // 	// 	t.Logf("num_nodes = %d", num_nodes)
-// 	// 	raiseParserErrors(t, p.errors)
+// 	// 	raiseParserErrors(t, p.Errors)
 // 	// } else if len(prog.Statements) > num_nodes {
 // 	// 	for _, stmt := range prog.Statements {
 // 	// 		letStmt, _ := stmt.(*ast.LetStatement)
@@ -555,7 +555,7 @@ func raiseExpectedNotEqParsedError(t *testing.T,
 // 	// for i, expectedNode := range expectedNodes {
 // 	// 	pass := expectedNode.Test(t, prog.Statements[i])
 // 	// 	if !pass {
-// 	// 		raiseParserErrors(t, p.errors)
+// 	// 		raiseParserErrors(t, p.Errors)
 // 	// 		t.FailNow()
 // 	// 		return
 // 	// 	}

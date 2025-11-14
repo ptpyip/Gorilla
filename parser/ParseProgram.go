@@ -13,7 +13,7 @@ func (p *Parser) ParseProgram() (*ast.Program, bool) {
 		// println("Parsing statement:", p.currentToken.Literal)
 		statement := p.parseStatement()
 		if statement == nil {
-			// for _, msg := range p.errors {
+			// for _, msg := range p.Errors {
 			// 	println(msg)
 			// }
 			p.raiseParseProgramError()

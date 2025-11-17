@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"gorilla/ast"
 	"gorilla/lexer"
+	"gorilla/object"
 	"gorilla/parser"
+	"gorilla/token"
 	"io"
 )
 
@@ -67,4 +69,55 @@ func printParserErrors(out io.Writer, stmts []ast.StatementNode, errors []string
 	}
 	// io.WriteString(out, "[END]\n")
 	// t.FailNow()
+}
+
+func evalExpression(expr ast.ExpressionNode) object.Object {
+	switch node := expr.(type) {
+	case *ast.BoolLiteral:
+		return &object.Bool{node.GetValue()}
+
+	case *ast.IntegerLiteral:
+		return &object.Int{node.GetValue()}
+
+	case *ast.Infix:
+		left := evalExpression(node.Left)
+		right := evalExpression(node.Right)
+		switch node.GetOperatorType() {
+		case token.EQ:
+			return &object.Bool{objIsEqual(left, right)}
+		default:
+			panic("")
+		}
+
+	default:
+		return &object.None{}
+	}
+}
+
+func objIsEqual(left object.Object, right object.Object) bool {
+	if left == nil || right == nil {
+		panic("Cannot compare nil objects")
+	}
+
+	if left.GetType() != right.GetType() {
+		return false
+	}
+
+	switch left.GetType() {
+	case object.BOOL:
+		leftBool := left.(*object.Bool)
+		rightBool := right.(*object.Bool)
+		return leftBool.Value == rightBool.Value
+
+	case object.INT:
+		leftInt := left.(*object.Int)
+		rightInt := right.(*object.Int)
+		return leftInt.Value == rightInt.Value
+
+	case object.NONE:
+		return true
+
+	default:
+		return false
+	}
 }
